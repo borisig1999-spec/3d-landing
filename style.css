@@ -352,6 +352,7 @@ ul { list-style: none; }
   .usp-banner-inner { flex-direction: column; align-items: flex-start; gap: 18px; padding: 28px 22px; text-align: left; }
   .usp-banner-icon { font-size: 56px; }
   .usp-banner-btn { width: 100%; }
+  .usp-banner { padding-bottom: 48px; }
 }
 .marquee {
   background: #0a0a0a;
