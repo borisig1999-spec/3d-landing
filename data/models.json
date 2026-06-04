@@ -513,6 +513,215 @@
         "декор"
       ],
       "featured": true
+    },
+    {
+      "id": "organayzer-dlya-ruchek-myatyy-paket",
+      "name": "Органайзер для ручек (мятый пакет)",
+      "category": "home",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/organayzer-dlya-ruchek-myatyy-paket.webp",
+      "url": "https://makerworld.com/ru/models/2630368-crumpled-paper-bag-pen-holder-desk-organizer",
+      "tags": [
+        "ручки",
+        "органайзер",
+        "стол",
+        "декор",
+        "офис"
+      ],
+      "featured": true
+    },
+    {
+      "id": "lopatka-dlya-paucha-s-koshachim-kormom",
+      "name": "Лопатка для пауча с кошачьим кормом",
+      "category": "home",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/lopatka-dlya-paucha-s-koshachim-kormom.webp",
+      "url": "https://makerworld.com/ru/models/1809118-cat-food-pouch-scraper",
+      "tags": [
+        "кот",
+        "корм",
+        "пауч",
+        "лопатка",
+        "аксессуар"
+      ],
+      "featured": true
+    },
+    {
+      "id": "skladnaya-podstavka-dlya-gitary",
+      "name": "Складная подставка для гитары",
+      "category": "home",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/skladnaya-podstavka-dlya-gitary.webp",
+      "url": "https://makerworld.com/ru/models/2389321-universal-portable-flat-pack-guitar-stand",
+      "tags": [
+        "гитара",
+        "подставка",
+        "складная",
+        "музыка",
+        "портативная"
+      ],
+      "featured": true
+    },
+    {
+      "id": "nabor-perehodnikov-gardena",
+      "name": "Набор переходников Gardena",
+      "category": "tools",
+      "subcategory": null,
+      "material": "PETG",
+      "weight": null,
+      "printTime": null,
+      "image": "images/nabor-perehodnikov-gardena.webp",
+      "url": "https://makerworld.com/ru/models/465793-gardena-quick-connector-set",
+      "tags": [
+        "gardena",
+        "полив",
+        "переходник",
+        "сад",
+        "инструмент"
+      ],
+      "featured": true
+    },
+    {
+      "id": "derzhatel-dlya-urovnya-universalnyy",
+      "name": "Держатель для уровня (универсальный)",
+      "category": "tools",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/derzhatel-dlya-urovnya-universalnyy.webp",
+      "url": "https://makerworld.com/ru/models/2786865-universal-spirit-level-holder",
+      "tags": [
+        "уровень",
+        "держатель",
+        "инструмент",
+        "крепление"
+      ],
+      "featured": true
+    },
+    {
+      "id": "nasadka-na-silikon-germetik-napravlyayuschaya",
+      "name": "Насадка на силикон/герметик + направляющая для шва",
+      "category": "tools",
+      "subcategory": null,
+      "material": "PETG",
+      "weight": null,
+      "printTime": null,
+      "image": "images/nasadka-na-silikon-germetik-napravlyayuschaya.webp",
+      "url": "https://makerworld.com/ru/models/1980050-perfectbead-silicone-caulk-tip-with-finish-guide#profileId-2129860",
+      "tags": [
+        "герметик",
+        "силикон",
+        "насадка",
+        "шов",
+        "ремонт"
+      ],
+      "featured": true
+    },
+    {
+      "id": "perehodnik-dlya-evropeyskogo-alyuminievogo",
+      "name": "Переходник для европейского алюминиевого профиля",
+      "category": "tools",
+      "subcategory": null,
+      "material": "PETG",
+      "weight": null,
+      "printTime": null,
+      "image": "images/perehodnik-dlya-evropeyskogo-alyuminievogo.webp",
+      "url": "https://makerworld.com/ru/models/2788982-european-standard-aluminum-profiles-non-standardiz#profileId-3100917",
+      "tags": [
+        "профиль",
+        "алюминий",
+        "конструктор",
+        "переходник",
+        "крепление"
+      ],
+      "featured": true
+    },
+    {
+      "id": "veshalka-dlya-remney",
+      "name": "Вешалка для ремней",
+      "category": "wardrobe",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/veshalka-dlya-remney.webp",
+      "url": "https://makerworld.com/ru/models/2740407-belt-hanger-belt-hook#profileId-3038742",
+      "tags": [
+        "ремень",
+        "вешалка",
+        "крючок",
+        "гардероб",
+        "хранение"
+      ],
+      "featured": true
+    },
+    {
+      "id": "soedinitel-veshalok-kryuchok-tsepochka",
+      "name": "Соединитель вешалок (крючок-цепочка)",
+      "category": "wardrobe",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/soedinitel-veshalok-kryuchok-tsepochka.webp",
+      "url": "https://makerworld.com/ru/models/2705544-clothes-hanger-connector-coat-hanger-hook#profileId-2999091",
+      "tags": [
+        "вешалка",
+        "соединитель",
+        "крючок",
+        "гардероб",
+        "порядок"
+      ],
+      "featured": true
+    },
+    {
+      "id": "derzhatel-tabletok-dlya-posudomoyki-i-paketov",
+      "name": "Держатель таблеток для посудомойки и пакетов",
+      "category": "kitchen",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/derzhatel-tabletok-dlya-posudomoyki-i-paketov.webp",
+      "url": "https://makerworld.com/ru/models/2787719-dishwasher-pod-holder-trash-bag-organizer#profileId-3099264",
+      "tags": [
+        "посудомойка",
+        "таблетки",
+        "держатель",
+        "мусор",
+        "пакеты",
+        "кухня"
+      ],
+      "featured": true
+    },
+    {
+      "id": "miska-antiozhor-dlya-koshek-i-sobak",
+      "name": "Миска-антиожор для кошек и собак",
+      "category": "home",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/miska-antiozhor-dlya-koshek-i-sobak.webp",
+      "url": "https://makerworld.com/ru/models/800590-slow-feeder-bowl-cat-dog#profileId-740518",
+      "tags": [
+        "кот",
+        "собака",
+        "миска",
+        "антиожор",
+        "питомец"
+      ],
+      "featured": true
     }
   ]
 }
