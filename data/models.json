@@ -760,6 +760,217 @@
         "клипса"
       ],
       "featured": true
+    },
+    {
+      "id": "derzhatel-dlya-paketov-iz-magazina",
+      "name": "Держатель для пакетов из магазина",
+      "category": "kitchen",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/derzhatel-dlya-paketov-iz-magazina.webp",
+      "url": "https://makerworld.com/ru/models/2628321-grocery-bag-holder-futuristic-design#profileId-2901894",
+      "tags": [
+        "пакеты",
+        "держатель",
+        "кухня",
+        "хранение",
+        "эко"
+      ],
+      "featured": true
+    },
+    {
+      "id": "smennaya-nasadka-raspylitel-dlya-wd-40",
+      "name": "Сменная насадка-распылитель для WD-40",
+      "category": "tools",
+      "subcategory": null,
+      "material": "PETG",
+      "weight": null,
+      "printTime": null,
+      "image": "images/smennaya-nasadka-raspylitel-dlya-wd-40.webp",
+      "url": "https://makerworld.com/ru/models/2581507-wd-40-lubricants-spray-nozzle-replacement#profileId-2847225",
+      "tags": [
+        "wd-40",
+        "насадка",
+        "смазка",
+        "инструмент",
+        "замена"
+      ],
+      "featured": true
+    },
+    {
+      "id": "faskosnimatel-dlya-pvh-trub",
+      "name": "Фаскосниматель для ПВХ-труб",
+      "category": "tools",
+      "subcategory": null,
+      "material": "PETG",
+      "weight": null,
+      "printTime": null,
+      "image": "images/faskosnimatel-dlya-pvh-trub.webp",
+      "url": "https://makerworld.com/ru/models/472238-chamfer-cutter-for-pvc-pipes#profileId-382595",
+      "tags": [
+        "пвх",
+        "трубы",
+        "фаска",
+        "инструмент",
+        "ремонт"
+      ],
+      "featured": true
+    },
+    {
+      "id": "zaglushka-dlya-otverstiy-v-shkafu-ikea",
+      "name": "Заглушка для отверстий в шкафу IKEA",
+      "category": "home",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/zaglushka-dlya-otverstiy-v-shkafu-ikea.webp",
+      "url": "https://makerworld.com/ru/models/1062522-ikea-cabinet-hole-cover#profileId-1050988",
+      "tags": [
+        "ikea",
+        "заглушка",
+        "шкаф",
+        "мебель",
+        "аксессуар"
+      ],
+      "featured": true
+    },
+    {
+      "id": "podstavka-dlya-termometra-retro-televizor",
+      "name": "Подставка для термометра (ретро-телевизор)",
+      "category": "home",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/podstavka-dlya-termometra-retro-televizor.webp",
+      "url": "https://makerworld.com/ru/models/889088-thermometer-hygrometer-stand-retro-television#profileId-845121",
+      "tags": [
+        "термометр",
+        "гигрометр",
+        "подставка",
+        "ретро",
+        "телевизор",
+        "декор"
+      ],
+      "featured": true
+    },
+    {
+      "id": "perehodnik-aaa-aa-dlya-batareek",
+      "name": "Переходник AAA → AA для батареек",
+      "category": "tools",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/perehodnik-aaa-aa-dlya-batareek.webp",
+      "url": "https://makerworld.com/ru/models/1350176-aaa-to-aa-battery-adapter-battery-holder#profileId-2371475",
+      "tags": [
+        "батарейка",
+        "адаптер",
+        "переходник",
+        "aaa",
+        "aa",
+        "электроника"
+      ],
+      "featured": true
+    },
+    {
+      "id": "derzhatel-dlya-pulta-gloku-takticheskiy",
+      "name": "Держатель для пульта Gloku (тактический)",
+      "category": "home",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/derzhatel-dlya-pulta-gloku-takticheskiy.webp",
+      "url": "https://makerworld.com/ru/models/2820311-gloku-tactical-remote-system#profileId-3140731",
+      "tags": [
+        "пульт",
+        "gloku",
+        "органайзер",
+        "тактический",
+        "хранение"
+      ],
+      "featured": false
+    },
+    {
+      "id": "minas-tirit-vlastelin-kolets",
+      "name": "Минас Тирит (Властелин Колец)",
+      "category": "figures",
+      "subcategory": "lotr",
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/minas-tirit-vlastelin-kolets.webp",
+      "url": "https://makerworld.com/ru/models/2744018-minas-tirith-lord-of-the-rings-lotr#profileId-3043413",
+      "tags": [
+        "властелин колец",
+        "минас тирит",
+        "крепость",
+        "лотр",
+        "декор"
+      ],
+      "featured": true
+    },
+    {
+      "id": "ruchka-dlya-butylki",
+      "name": "Ручка для бутылки",
+      "category": "home",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/ruchka-dlya-butylki.webp",
+      "url": "https://makerworld.com/ru/models/2310187-handle-for-bottle-ruchka-dlia-butylki#profileId-2521939",
+      "tags": [
+        "бутылка",
+        "ручка",
+        "держатель",
+        "удобство"
+      ],
+      "featured": true
+    },
+    {
+      "id": "derzhatel-dlya-telefona-na-rozetke",
+      "name": "Держатель для телефона на розетке",
+      "category": "home",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/derzhatel-dlya-telefona-na-rozetke.webp",
+      "url": "https://makerworld.com/ru/models/1677588-phone-holder-for-power-socket#profileId-1776792",
+      "tags": [
+        "телефон",
+        "держатель",
+        "розетка",
+        "зарядка",
+        "аксессуар"
+      ],
+      "featured": true
+    },
+    {
+      "id": "vrata-erebora-vlastelin-kolets",
+      "name": "Врата Эребора (Властелин Колец)",
+      "category": "figures",
+      "subcategory": "lotr",
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/vrata-erebora-vlastelin-kolets.webp",
+      "url": "https://makerworld.com/ru/models/2735822-front-gate-to-erebor-lord-of-the-rings-lotr#profileId-3032968",
+      "tags": [
+        "властелин колец",
+        "эребор",
+        "врата",
+        "лотр",
+        "хоббит",
+        "декор"
+      ],
+      "featured": true
     }
   ]
 }
