@@ -417,6 +417,102 @@
         "фигурка"
       ],
       "featured": true
+    },
+    {
+      "id": "derzhatel-knigi-dlya-chteniya-odnoy-rukoy",
+      "name": "Держатель книги для чтения одной рукой",
+      "category": "tools",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/derzhatel-knigi-dlya-chteniya-odnoy-rukoy.webp",
+      "url": "https://makerworld.com/ru/models/2640089-book-page-holder-one-handed-book-opener",
+      "tags": [
+        "книга",
+        "чтение",
+        "держатель",
+        "аксессуар",
+        "одной рукой"
+      ],
+      "featured": true
+    },
+    {
+      "id": "tysyacheletniy-sokol-millennium-falcon-star-wars",
+      "name": "Тысячелетний сокол (Millennium Falcon, Star Wars)",
+      "category": "figures",
+      "subcategory": "star-wars",
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/tysyacheletniy-sokol-millennium-falcon-star-wars.webp",
+      "url": "https://makerworld.com/ru/models/1595067-millennium-falcon-star-wars",
+      "tags": [
+        "star wars",
+        "звездные войны",
+        "корабль",
+        "сокол",
+        "модель"
+      ],
+      "featured": true
+    },
+    {
+      "id": "at-st-shagohod-star-wars-kit-card",
+      "name": "AT-ST шагоход (Star Wars, kit-card)",
+      "category": "figures",
+      "subcategory": "star-wars",
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/at-st-shagohod-star-wars-kit-card.webp",
+      "url": "https://makerworld.com/ru/models/22259-at-st-walker-kit-card",
+      "tags": [
+        "star wars",
+        "звездные войны",
+        "at-st",
+        "шагоход",
+        "карточка",
+        "сборка"
+      ],
+      "featured": true
+    },
+    {
+      "id": "kryuchok-v-bagazhnik-renault-5-e-tech",
+      "name": "Крючок в багажник Renault 5 E-Tech",
+      "category": "auto",
+      "subcategory": "car",
+      "material": "PETG",
+      "weight": null,
+      "printTime": null,
+      "image": "images/kryuchok-v-bagazhnik-renault-5-e-tech.webp",
+      "url": "https://makerworld.com/ru/models/1456526-renault-5-e-tech-trunk-hook",
+      "tags": [
+        "авто",
+        "renault",
+        "багажник",
+        "крючок",
+        "аксессуар"
+      ],
+      "featured": true
+    },
+    {
+      "id": "nastennoe-kreplenie-dlya-gitary",
+      "name": "Настенное крепление для гитары",
+      "category": "home",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/nastennoe-kreplenie-dlya-gitary.webp",
+      "url": "https://makerworld.com/ru/models/447604-guitar-wall-mount#profileId-354824",
+      "tags": [
+        "гитара",
+        "крепление",
+        "стена",
+        "музыка",
+        "декор"
+      ],
+      "featured": true
     }
   ]
 }
