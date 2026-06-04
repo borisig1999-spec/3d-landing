@@ -722,6 +722,44 @@
         "питомец"
       ],
       "featured": true
+    },
+    {
+      "id": "poddon-pod-stiralnuyu-mashinu-nizkiy",
+      "name": "Поддон под стиральную машину (низкий)",
+      "category": "home",
+      "subcategory": null,
+      "material": "ABS",
+      "weight": null,
+      "printTime": null,
+      "image": "images/poddon-pod-stiralnuyu-mashinu-nizkiy.webp",
+      "url": "https://makerworld.com/ru/models/2726024-washing-machine-drain-tray-universal-low-profile",
+      "tags": [
+        "стиральная машина",
+        "поддон",
+        "защита",
+        "вода",
+        "протечка"
+      ],
+      "featured": true
+    },
+    {
+      "id": "mini-zazhim-dlya-paketov",
+      "name": "Мини-зажим для пакетов",
+      "category": "kitchen",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/mini-zazhim-dlya-paketov.webp",
+      "url": "https://makerworld.com/ru/models/2346974-mini-bag-clip-bag-sealing-clip-snack-bag-clip",
+      "tags": [
+        "пакет",
+        "зажим",
+        "кухня",
+        "хранение",
+        "клипса"
+      ],
+      "featured": true
     }
   ]
 }
