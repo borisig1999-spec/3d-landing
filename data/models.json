@@ -323,6 +323,100 @@
         "дарт вейдер"
       ],
       "featured": true
+    },
+    {
+      "id": "skrytye-derzhateli-dlya-kryshek-skovorod",
+      "name": "Скрытые держатели для крышек сковород",
+      "category": "kitchen",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/skrytye-derzhateli-dlya-kryshek-skovorod.webp",
+      "url": "https://makerworld.com/ru/models/2711571-hidden-cupboard-pan-lid-holders#profileId-3002581",
+      "tags": [
+        "кухня",
+        "крышки",
+        "держатель",
+        "порядок",
+        "шкаф"
+      ],
+      "featured": true
+    },
+    {
+      "id": "kompaktnaya-obuvnaya-lozhka",
+      "name": "Компактная обувная ложка",
+      "category": "wardrobe",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/kompaktnaya-obuvnaya-lozhka.webp",
+      "url": "https://makerworld.com/ru/models/2733964-compact-shoe-horn",
+      "tags": [
+        "обувь",
+        "ложка",
+        "гардероб",
+        "компактная"
+      ],
+      "featured": true
+    },
+    {
+      "id": "uglovoy-organayzer-v-bagazhnik-avto",
+      "name": "Угловой органайзер в багажник авто",
+      "category": "auto",
+      "subcategory": "car",
+      "material": "PETG",
+      "weight": null,
+      "printTime": null,
+      "image": "images/uglovoy-organayzer-v-bagazhnik-avto.webp",
+      "url": "https://makerworld.com/ru/models/2791014-lugagge-angle-car-organizer-tool-universal#profileId-3103445",
+      "tags": [
+        "авто",
+        "багажник",
+        "органайзер",
+        "универсальный",
+        "порядок"
+      ],
+      "featured": true
+    },
+    {
+      "id": "polka-dlya-kofeynyh-kruzhek-bez-opor",
+      "name": "Полка для кофейных кружек (без опор)",
+      "category": "kitchen",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/polka-dlya-kofeynyh-kruzhek-bez-opor.webp",
+      "url": "https://makerworld.com/ru/models/2793126-cup-mug-shelf-for-coffee-cups-without-supports",
+      "tags": [
+        "кухня",
+        "кружки",
+        "полка",
+        "кофе",
+        "декор"
+      ],
+      "featured": true
+    },
+    {
+      "id": "derzhatel-dlya-telefona-kot-chill",
+      "name": "Держатель для телефона (кот Chill)",
+      "category": "home",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/derzhatel-dlya-telefona-kot-chill.webp",
+      "url": "https://makerworld.com/ru/models/2769549-chill-cat-phone-holder#profileId-3076137",
+      "tags": [
+        "телефон",
+        "держатель",
+        "кот",
+        "декор",
+        "фигурка"
+      ],
+      "featured": true
     }
   ]
 }
