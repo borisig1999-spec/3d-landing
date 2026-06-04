@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Каталог моделей — 3Д для всех</title>
+  <meta name="description" content="Каталог 3D-моделей для печати: декор, хранение, автозапчасти, фигурки, кухня, инструменты.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">
+        <span class="logo-mark">3Д</span>
+        <span class="logo-text">для всех</span>
+      </a>
+      <nav class="nav">
+        <a href="index.html">Главная</a>
+        <a href="index.html#works">Популярное</a>
+        <a href="index.html#pricing">Цены</a>
+        <a href="index.html#faq">FAQ</a>
+      </nav>
+      <a href="index.html#order" class="btn btn-primary btn-sm">Связаться</a>
+    </div>
+  </header>
+
+  <main>
+
+    <section class="catalog-hero">
+      <div class="container">
+        <div class="section-num">КАТАЛОГ</div>
+        <h1>Все модели</h1>
+        <p>Готовые работы и то, что могу напечатать. Используйте фильтры или поиск.</p>
+
+        <div class="catalog-search">
+          <span class="search-icon">⌕</span>
+          <input type="search" id="searchInput" placeholder="Поиск по названию или тегу..." autocomplete="off">
+          <button class="search-clear" id="searchClear" aria-label="Очистить">×</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="catalog-filters">
+      <div class="container">
+        <div class="filter-group">
+          <div class="filter-label">Категория</div>
+          <div class="filter-chips" id="categoryChips"></div>
+        </div>
+        <div class="filter-group filter-group-sub" id="subcategoryGroup" hidden>
+          <div class="filter-label">Подкатегория</div>
+          <div class="filter-chips" id="subcategoryChips"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="catalog-results">
+      <div class="container">
+        <div class="results-head">
+          <div class="results-count" id="resultsCount">Загрузка...</div>
+          <div class="results-sort">
+            <label for="sortSelect">Сортировка:</label>
+            <select id="sortSelect">
+              <option value="default">По умолчанию</option>
+              <option value="name">По названию</option>
+              <option value="weight-asc">По весу (легче → тяжелее)</option>
+              <option value="weight-desc">По весу (тяжелее → легче)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="catalog-grid" id="catalogGrid">
+          <div class="catalog-loading">Загружаю модели...</div>
+        </div>
+
+        <div class="catalog-empty" id="catalogEmpty" hidden>
+          <div class="empty-icon">⌀</div>
+          <h3>Ничего не нашлось</h3>
+          <p>Попробуйте изменить фильтры или поисковый запрос</p>
+          <button class="btn btn-ghost" id="resetFilters">Сбросить фильтры</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="order" id="order">
+      <div class="container">
+        <div class="section-head">
+          <div class="section-num">ЗАКАЗАТЬ</div>
+          <h2>Свяжитесь со мной</h2>
+          <p>Удобным способом — отвечу в течение дня с расчётом стоимости и сроков.</p>
+        </div>
+
+        <div class="contact-grid">
+          <a href="tel:+79956877992" class="contact-card">
+            <div class="contact-icon">📞</div>
+            <div class="contact-name">Позвонить</div>
+            <div class="contact-value">+7 (995) 687-79-92</div>
+          </a>
+          <a href="https://t.me/Bars_ig" target="_blank" rel="noopener" class="contact-card">
+            <div class="contact-icon">💬</div>
+            <div class="contact-name">Telegram</div>
+            <div class="contact-value">@Bars_ig</div>
+          </a>
+          <a href="https://vk.com/boris_ig" target="_blank" rel="noopener" class="contact-card">
+            <div class="contact-icon">👥</div>
+            <div class="contact-name">ВКонтакте</div>
+            <div class="contact-value">vk.com/boris_ig</div>
+          </a>
+          <a href="mailto:boris.ig2013@ya.ru" class="contact-card">
+            <div class="contact-icon">📧</div>
+            <div class="contact-name">Email</div>
+            <div class="contact-value">boris.ig2013@ya.ru</div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <a href="index.html" class="logo logo-light">
+            <span class="logo-mark">3Д</span>
+            <span class="logo-text">для всех</span>
+          </a>
+          <p class="footer-tag">3D-печать под заказ. Готовые модели и индивидуальные детали.</p>
+        </div>
+        <div>
+          <h4>Контакты</h4>
+          <a href="tel:+79956877992">+7 (995) 687-79-92</a>
+          <a href="https://t.me/Bars_ig" target="_blank" rel="noopener">Telegram</a>
+          <a href="https://vk.com/boris_ig" target="_blank" rel="noopener">ВКонтакте</a>
+          <a href="mailto:boris.ig2013@ya.ru">Email</a>
+        </div>
+        <div>
+          <h4>Модели</h4>
+          <a href="https://makerworld.com/ru" target="_blank" rel="noopener">MakerWorld</a>
+          <a href="catalog.html">Весь каталог</a>
+        </div>
+        <div>
+          <h4>Навигация</h4>
+          <a href="index.html">Главная</a>
+          <a href="index.html#works">Популярное</a>
+          <a href="index.html#pricing">Цены</a>
+          <a href="index.html#faq">FAQ</a>
+        </div>
+      </div>
+      <div class="footer-bottom">© 3Д для всех — печать под заказ</div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,328 @@
+{
+  "categories": [
+    {
+      "id": "home",
+      "name": "Дом"
+    },
+    {
+      "id": "storage",
+      "name": "Хранение"
+    },
+    {
+      "id": "kitchen",
+      "name": "Кухня"
+    },
+    {
+      "id": "lighting",
+      "name": "Свет"
+    },
+    {
+      "id": "tools",
+      "name": "Инструменты"
+    },
+    {
+      "id": "wardrobe",
+      "name": "Гардероб"
+    },
+    {
+      "id": "figures",
+      "name": "Фигурки"
+    },
+    {
+      "id": "games",
+      "name": "Игры"
+    },
+    {
+      "id": "auto",
+      "name": "Авто и техника"
+    },
+    {
+      "id": "parts",
+      "name": "Запчасти"
+    }
+  ],
+  "subcategories": {
+    "figures": [
+      {
+        "id": "star-wars",
+        "name": "Star Wars"
+      },
+      {
+        "id": "lotr",
+        "name": "Властелин колец"
+      },
+      {
+        "id": "marvel",
+        "name": "Marvel"
+      },
+      {
+        "id": "anime",
+        "name": "Аниме"
+      },
+      {
+        "id": "games",
+        "name": "Игры"
+      },
+      {
+        "id": "other",
+        "name": "Другое"
+      }
+    ],
+    "auto": [
+      {
+        "id": "car",
+        "name": "Авто"
+      },
+      {
+        "id": "motorcycle",
+        "name": "Мото"
+      },
+      {
+        "id": "boat",
+        "name": "Лодки"
+      },
+      {
+        "id": "bicycle",
+        "name": "Велосипед"
+      }
+    ],
+    "storage": [
+      {
+        "id": "ikea-skadis",
+        "name": "IKEA SKÅDIS"
+      },
+      {
+        "id": "gridfinity",
+        "name": "Gridfinity"
+      },
+      {
+        "id": "custom",
+        "name": "Другое"
+      }
+    ]
+  },
+  "models": [
+    {
+      "id": "kraftique-pot",
+      "name": "Горшок под растения",
+      "category": "home",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": 76,
+      "printTime": 4.5,
+      "image": "images/горшок под растения.jpg",
+      "url": "https://makerworld.com/ru/models/2016647-kraftique-paper-reborn-purpose-refined",
+      "tags": [
+        "растения",
+        "декор"
+      ],
+      "featured": true
+    },
+    {
+      "id": "ikea-skadis-system",
+      "name": "IKEA SKÅDIS — система хранения",
+      "category": "storage",
+      "subcategory": "ikea-skadis",
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/икеа система хранения.png",
+      "url": "https://makerworld.com/ru/models/799571-ikea-skadis-add-ons-parametric-bins-and-shelves",
+      "tags": [
+        "ikea",
+        "хранение",
+        "органайзер"
+      ],
+      "featured": true
+    },
+    {
+      "id": "self-watering-seed-kit",
+      "name": "Комплект для рассады с автополивом",
+      "category": "home",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": 322,
+      "printTime": 11.1,
+      "image": "images/набор для рассады.png",
+      "url": "https://makerworld.com/ru/models/1400373-self-watering-seed-starter-with-modular-grow-kit",
+      "tags": [
+        "сад",
+        "рассада",
+        "автополив"
+      ],
+      "featured": true
+    },
+    {
+      "id": "gridfinity-base",
+      "name": "Лёгкое Gridfinity-основание",
+      "category": "storage",
+      "subcategory": "gridfinity",
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/хранение для ящиков.jpeg",
+      "url": "https://makerworld.com/ru/models/1685835-lightest-gridfinity-base-ever-customizable",
+      "tags": [
+        "хранение",
+        "gridfinity",
+        "ящики"
+      ],
+      "featured": true
+    },
+    {
+      "id": "star-wars-book-nook",
+      "name": "Star Wars книжный уголок",
+      "category": "figures",
+      "subcategory": "star-wars",
+      "material": "PLA",
+      "weight": 155,
+      "printTime": 10.6,
+      "image": "images/декоративные фигуры.jpg",
+      "url": "https://makerworld.com/ru/models/792998-star-wars-book-nook-and-wall-mount",
+      "tags": [
+        "звёздные войны",
+        "книги",
+        "декор"
+      ],
+      "featured": true
+    },
+    {
+      "id": "road-lamp-v1",
+      "name": "Торшер Road Lamp V1",
+      "category": "lighting",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": 158,
+      "printTime": 2.8,
+      "image": "images/торшеры и светильники.png",
+      "url": "https://makerworld.com/ru/models/2757289-road-lamp-v1",
+      "tags": [
+        "торшер",
+        "свет",
+        "декор"
+      ],
+      "featured": true
+    },
+    {
+      "id": "cutting-board-stand",
+      "name": "Подставка под разделочные доски",
+      "category": "kitchen",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/подставка под доски.jpg",
+      "url": "https://makerworld.com/ru/models/2738798-parametric-cutting-board-stand",
+      "tags": [
+        "кухня",
+        "доски",
+        "подставка"
+      ],
+      "featured": false
+    },
+    {
+      "id": "power-strip-holder",
+      "name": "Держатель удлинителя",
+      "category": "tools",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": 48,
+      "printTime": 1.7,
+      "image": "images/держатель.jpeg",
+      "url": "https://makerworld.com/ru/models/2767688-power-strip-holder",
+      "tags": [
+        "удлинитель",
+        "крепёж",
+        "органайзер"
+      ],
+      "featured": false
+    },
+    {
+      "id": "motorcycle-air-filter-cover",
+      "name": "Кожух воздушного фильтра (мотоцикл)",
+      "category": "auto",
+      "subcategory": "motorcycle",
+      "material": "ABS",
+      "weight": null,
+      "printTime": null,
+      "image": "images/кожух для фильтра.png",
+      "url": null,
+      "tags": [
+        "мотоцикл",
+        "ABS",
+        "кастом"
+      ],
+      "featured": true
+    },
+    {
+      "id": "car-air-deflector",
+      "name": "Автомобильный воздухонаправляющий щиток",
+      "category": "auto",
+      "subcategory": "car",
+      "material": "ABS",
+      "weight": null,
+      "printTime": null,
+      "image": "images/авто щиток.png",
+      "url": null,
+      "tags": [
+        "авто",
+        "ABS",
+        "кастом"
+      ],
+      "featured": true
+    },
+    {
+      "id": "equipment-bushing",
+      "name": "Втулка для оборудования (PA6)",
+      "category": "parts",
+      "subcategory": null,
+      "material": "PA6",
+      "weight": null,
+      "printTime": null,
+      "image": "images/втулка для оборудоваия.png",
+      "url": null,
+      "tags": [
+        "втулка",
+        "PA6",
+        "инженерная"
+      ],
+      "featured": false
+    },
+    {
+      "id": "boat-motor-bushings",
+      "name": "Резиновые втулки для лодочного мотора",
+      "category": "auto",
+      "subcategory": "boat",
+      "material": "TPU",
+      "weight": null,
+      "printTime": null,
+      "image": "images/втулки.png",
+      "url": null,
+      "tags": [
+        "лодка",
+        "TPU",
+        "втулки"
+      ],
+      "featured": false
+    },
+    {
+      "id": "dart-veyder-vaza-gorshok-cat-wars-low-poly",
+      "name": "Дарт Вейдер — ваза-горшок (Cat Wars, low poly)",
+      "category": "figures",
+      "subcategory": "star-wars",
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/dart-veyder-vaza-gorshok-cat-wars-low-poly.webp",
+      "url": "https://makerworld.com/ru/models/189019-darth-vaser-a-cat-wars-low-poly-vase-planter",
+      "tags": [
+        "звёздные войны",
+        "ваза",
+        "горшок",
+        "декор",
+        "дарт вейдер"
+      ],
+      "featured": true
+    }
+  ]
+}

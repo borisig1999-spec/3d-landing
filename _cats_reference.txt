@@ -1,0 +1,17 @@
+КАТЕГОРИИ И ПОДКАТЕГОРИИ:
+
+  home         — Дом
+  storage      — Хранение
+                 подкатегории: ikea-skadis, gridfinity, custom
+  kitchen      — Кухня
+  lighting     — Свет
+  tools        — Инструменты
+  wardrobe     — Гардероб
+  figures      — Фигурки
+                 подкатегории: star-wars, lotr, marvel, anime, games, other
+  games        — Игры
+  auto         — Авто и техника
+                 подкатегории: car, motorcycle, boat, bicycle
+  parts        — Запчасти
+
+МАТЕРИАЛЫ: PLA, PETG, ABS, TPU, PA6
