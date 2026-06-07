@@ -68,6 +68,17 @@ def load_categories() -> dict:
     except Exception:
         return {}
 
+
+def load_subcategories(cat_id: str) -> dict:
+    """Загружает подкатегории для конкретной категории."""
+    try:
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        subs = data.get("subcategories", {}).get(cat_id, [])
+        return {s["id"]: s["name"] for s in subs}
+    except Exception:
+        return {}
+
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     level=logging.INFO,
@@ -97,11 +108,13 @@ def get_recent_models(n: int = 5) -> list:
         return []
 
 
-def run_add_model(url: str, cat: str = None, tags: str = "", featured: bool = False, name: str = None) -> dict:
+def run_add_model(url: str, cat: str = None, sub: str = None, tags: str = "", featured: bool = False, name: str = None) -> dict:
     """Запускает add_model.py и возвращает результат."""
     cmd = [sys.executable, str(SCRIPT_ADD), url, "--add"]
     if cat:
         cmd.extend(["--cat", cat])
+    if sub:
+        cmd.extend(["--sub", sub])
     if tags:
         cmd.extend(["--tags", tags])
     if featured:
@@ -176,12 +189,15 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Как пользоваться:\n\n"
         "1. Отправь ссылку на модель:\n"
         "   https://makerworld.com/ru/models/2016647\n\n"
-        "2. Я спрошу категорию — выбери из списка\n\n"
-        "3. Готово! Модель добавлена на сайт\n\n"
-        "Добавление категорий:\n"
-        "/addcat figures Фигурки\n"
-        "/addsub figures star-wars Star Wars\n\n"
-        "Или просто отправь ссылку — я спрошу категорию."
+        "2. Выбери категорию (бот предложит варианты)\n\n"
+        "3. Выбери подкатегорию или пропусти\n\n"
+        "4. Выбери название (перевод/оригинал/своё)\n\n"
+        "5. Готово! Модель добавлена на сайт\n\n"
+        "Команды:\n"
+        "/addcat <id> <название> — новая категория\n"
+        "/addsub <cat_id> <sub_id> <название> — новая подкатегория\n"
+        "/list — последние модели\n\n"
+        "Или просто отправь ссылку — я всё покажу!"
     )
 
 
@@ -302,6 +318,11 @@ async def handle_url(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await handle_new_category(update, context)
         return
 
+    # Если ожидаем название новой подкатегории
+    if context.user_data.get("awaiting_new_sub"):
+        await handle_new_subcategory(update, context)
+        return
+
     # Если ожидаем кастомное название
     if context.user_data.get("awaiting_custom_name"):
         await handle_model_name(update, context)
@@ -381,7 +402,7 @@ def guess_category_from_url(url: str) -> str:
 
 
 async def category_selected(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Обработка выбора категории — показывает оригинальное название и перевод."""
+    """Обработка выбора категории — показывает подкатегории."""
     query = update.callback_query
     await query.answer()
 
@@ -408,12 +429,83 @@ async def category_selected(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["pending_cat"] = cat_id
     context.user_data["pending_cat_name"] = cat_name
 
-    # Получаем оригинальное название (быстро, без браузера)
+    # Загружаем подкатегории
+    subcategories = load_subcategories(cat_id)
+
+    # Построение клавиатуры подкатегорий
+    keyboard = []
+    if subcategories:
+        row = []
+        for sub_id, sub_name in subcategories.items():
+            row.append(InlineKeyboardButton(sub_name, callback_data=f"sub:{sub_id}"))
+            if len(row) == 2:
+                keyboard.append(row)
+                row = []
+        if row:
+            keyboard.append(row)
+
+    # Кнопки "Новая подкатегория" и "Без подкатегории"
+    keyboard.append([InlineKeyboardButton("➕ Новая подкатегория", callback_data="sub:new")])
+    keyboard.append([InlineKeyboardButton("⏭ Без подкатегории", callback_data="sub:none")])
+
+    if subcategories:
+        text = f"Категория: «{cat_name}»\n\nВыбери подкатегорию:"
+    else:
+        text = f"Категория: «{cat_name}»\n\nПодкатегорий пока нет. Создай новую или пропусти:"
+
+    await query.edit_message_text(
+        text,
+        reply_markup=InlineKeyboardMarkup(keyboard),
+    )
+
+
+async def subcategory_selected(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработка выбора подкатегории."""
+    query = update.callback_query
+    await query.answer()
+
+    sub_id = query.data.split(":")[1]
+    url = context.user_data.get("pending_url")
+    cat_id = context.user_data.get("pending_cat")
+    cat_name = context.user_data.get("pending_cat_name")
+
+    if not url:
+        await query.edit_message_text("Ошибка: ссылка потерялась. Отправь заново.")
+        return
+
+    # Если выбрана "Новая подкатегория"
+    if sub_id == "new":
+        context.user_data["awaiting_new_sub"] = True
+        await query.edit_message_text(
+            "Отправь название новой подкатегории на русском.\n"
+            "Например: «Star Wars» или «Миньоны»"
+        )
+        return
+
+    # Если выбрано "Без подкатегории"
+    if sub_id == "none":
+        context.user_data["pending_sub"] = None
+        context.user_data["pending_sub_name"] = None
+    else:
+        subcategories = load_subcategories(cat_id)
+        sub_name = subcategories.get(sub_id, sub_id)
+        context.user_data["pending_sub"] = sub_id
+        context.user_data["pending_sub_name"] = sub_name
+
+    # Переходим к выбору названия
+    await show_name_selection(update, context)
+
+
+async def show_name_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Показать выбор названия модели."""
+    url = context.user_data.get("pending_url")
+    cat_name = context.user_data.get("pending_cat_name")
+    sub_name = context.user_data.get("pending_sub_name")
+
+    # Получаем оригинальное название
     original_name = "модель"
     try:
-        # Пробуем достать название из URL или описания
         if "models/" in url:
-            # Извлекаем из URL
             match = re.search(r'models/\d+-(.+?)(?:\?|$)', url)
             if match:
                 original_name = match.group(1).replace('-', ' ').title()
@@ -423,7 +515,7 @@ async def category_selected(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Переводим
     translated_name = translate_to_ru(original_name)
 
-    # Сохраняем оба варианта
+    # Сохраняем варианты
     context.user_data["original_name"] = original_name
     context.user_data["translated_name"] = translated_name
 
@@ -434,13 +526,27 @@ async def category_selected(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("✏️ Написать своё", callback_data="name:custom")],
     ]
 
-    await query.edit_message_text(
-        f"Категория: «{cat_name}»\n\n"
-        f"Оригинал: {original_name}\n"
-        f"Перевод: {translated_name}\n\n"
-        f"Выбери название или напиши своё:",
-        reply_markup=InlineKeyboardMarkup(keyboard),
-    )
+    category_text = f"Категория: «{cat_name}»"
+    if sub_name:
+        category_text += f" → «{sub_name}»"
+
+    # Определяем, откуда вызвано — callback или message
+    if update.callback_query:
+        await update.callback_query.edit_message_text(
+            f"{category_text}\n\n"
+            f"Оригинал: {original_name}\n"
+            f"Перевод: {translated_name}\n\n"
+            f"Выбери название или напиши своё:",
+            reply_markup=InlineKeyboardMarkup(keyboard),
+        )
+    else:
+        await update.message.reply_text(
+            f"{category_text}\n\n"
+            f"Оригинал: {original_name}\n"
+            f"Перевод: {translated_name}\n\n"
+            f"Выбери название или напиши своё:",
+            reply_markup=InlineKeyboardMarkup(keyboard),
+        )
 
 
 async def handle_new_category(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -484,6 +590,34 @@ async def handle_new_category(update: Update, context: ContextTypes.DEFAULT_TYPE
         await update.message.reply_text("Ошибка: категория уже существует.")
 
 
+async def handle_new_subcategory(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработка ввода названия новой подкатегории."""
+    sub_name = update.message.text.strip()
+    cat_id = context.user_data.get("pending_cat")
+    cat_name = context.user_data.get("pending_cat_name")
+
+    # Генерируем ID из названия
+    sub_id = re.sub(r'[^a-zа-я0-9]', '-', sub_name.lower()).strip('-')
+    sub_id = re.sub(r'-+', '-', sub_id)
+
+    if not sub_id:
+        await update.message.reply_text("Некорректное название. Попробуй ещё раз.")
+        return
+
+    # Добавляем подкатегорию
+    if add_subcategory_to_json(cat_id, sub_id, sub_name):
+        git_commit_and_push(f"Добавлена подкатегория: {sub_name} ({cat_id}/{sub_id})")
+
+        context.user_data["awaiting_new_sub"] = False
+        context.user_data["pending_sub"] = sub_id
+        context.user_data["pending_sub_name"] = sub_name
+
+        # Переходим к выбору названия
+        await show_name_selection(update, context)
+    else:
+        await update.message.reply_text("Ошибка: подкатегория уже существует или категория не найдена.")
+
+
 async def name_selected(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Обработка выбора названия модели."""
     query = update.callback_query
@@ -509,8 +643,9 @@ async def name_selected(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.edit_message_text(f"Добавляю «{final_name}» в категорию «{cat_name}»...")
 
     # Запускаем add_model.py
+    sub_id = context.user_data.get("pending_sub")
     try:
-        result = run_add_model(url, cat=cat_id, name=final_name)
+        result = run_add_model(url, cat=cat_id, sub=sub_id, name=final_name)
     except subprocess.TimeoutExpired:
         await query.message.reply_text("Ошибка: скрипт завис. Попробуй позже.")
         return
@@ -559,8 +694,9 @@ async def handle_model_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"Добавляю «{final_name}» в категорию «{cat_name}»...")
 
         # Запускаем add_model.py
+        sub_id = context.user_data.get("pending_sub")
         try:
-            result = run_add_model(url, cat=cat_id, name=final_name)
+            result = run_add_model(url, cat=cat_id, sub=sub_id, name=final_name)
         except subprocess.TimeoutExpired:
             await update.message.reply_text("Ошибка: скрипт завис. Попробуй позже.")
             return True
@@ -590,35 +726,11 @@ async def handle_model_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
 
         # Чистим
-        for key in ["pending_url", "pending_cat", "pending_cat_name", "original_name", "translated_name"]:
+        for key in ["pending_url", "pending_cat", "pending_cat_name", "pending_sub", "pending_sub_name", "original_name", "translated_name"]:
             context.user_data.pop(key, None)
         return True
 
     return False
-
-    # Запускаем add_model.py
-    try:
-        result = run_add_model(url, cat=cat_id, name=custom_name)
-    except subprocess.TimeoutExpired:
-        await update.message.reply_text("Ошибка: скрипт завис. Попробуй позже.")
-        return True
-    except Exception as e:
-        await update.message.reply_text(f"Ошибка: {e}")
-        return True
-
-    if result["returncode"] != 0:
-        error = result["stderr"].strip() or result["stdout"].strip()
-        await update.message.reply_text(f"Ошибка при добавлении:\n{error[:500]}")
-        return True
-
-    # Парсим название из stdout
-    name = custom_name or "модель"
-    for line in result["stdout"].splitlines():
-        if line.startswith("Название:"):
-            name = line.split(":", 1)[1].strip()
-            break
-
-    # Коммитим и пушим
     await update.message.reply_text(f"✅ «{name}» добавлена! Пушу на сайт...")
     git_result = git_commit_and_push(f"Добавлена модель: {name} (из Telegram)")
 
@@ -659,6 +771,7 @@ def main():
     app.add_handler(CommandHandler("addcat", add_category))
     app.add_handler(CommandHandler("addsub", add_subcategory))
     app.add_handler(CallbackQueryHandler(category_selected, pattern=r"^cat:"))
+    app.add_handler(CallbackQueryHandler(subcategory_selected, pattern=r"^sub:"))
     app.add_handler(CallbackQueryHandler(name_selected, pattern=r"^name:"))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_url))
 
