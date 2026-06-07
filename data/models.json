@@ -1033,6 +1033,19 @@
       "url": "https://makerworld.com/ru/models/1971172-auto-locking-hanger-gravity-towel-hook-ribbed",
       "tags": [],
       "featured": false
+    },
+    {
+      "id": "podstavka-dlya-naushnikov-kaktus",
+      "name": "Подставка для наушников Кактус",
+      "category": "storage",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/podstavka-dlya-naushnikov-kaktus.webp",
+      "url": "https://makerworld.com/ru/models/1646203-cactus-headphone-stand#profileId-1739948",
+      "tags": [],
+      "featured": false
     }
   ]
 }
