@@ -38,19 +38,17 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_FILE = PROJECT_ROOT / "data" / "models.json"
 SCRIPT_ADD = PROJECT_ROOT / "scripts" / "add_model.py"
 
-# Категории для inline-кнопок
-CATEGORIES = {
-    "home": "Дом",
-    "storage": "Хранение",
-    "kitchen": "Кухня",
-    "lighting": "Свет",
-    "tools": "Инструменты",
-    "wardrobe": "Гардероб",
-    "figures": "Фигурки",
-    "games": "Игры",
-    "auto": "Авто и техника",
-    "parts": "Запчасти",
-}
+# Категории загружаются из models.json
+
+
+def load_categories() -> dict:
+    """Загружает категории из models.json."""
+    try:
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return {c["id"]: c["name"] for c in data.get("categories", [])}
+    except Exception:
+        return {}
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -81,7 +79,7 @@ def get_recent_models(n: int = 5) -> list:
         return []
 
 
-def run_add_model(url: str, cat: str = None, tags: str = "", featured: bool = False) -> dict:
+def run_add_model(url: str, cat: str = None, tags: str = "", featured: bool = False, name: str = None) -> dict:
     """Запускает add_model.py и возвращает результат."""
     cmd = [sys.executable, str(SCRIPT_ADD), url, "--add"]
     if cat:
@@ -90,6 +88,8 @@ def run_add_model(url: str, cat: str = None, tags: str = "", featured: bool = Fa
         cmd.extend(["--tags", tags])
     if featured:
         cmd.append("--featured")
+    if name:
+        cmd.extend(["--name", name])
 
     result = subprocess.run(
         cmd,
@@ -107,6 +107,16 @@ def run_add_model(url: str, cat: str = None, tags: str = "", featured: bool = Fa
 
 def git_commit_and_push(message: str) -> dict:
     """Коммитит и пушит изменения на GitHub."""
+    # Сначала проверяем, есть ли что коммитить
+    status = subprocess.run(
+        ["git", "status", "--porcelain"],
+        capture_output=True,
+        text=True,
+        cwd=str(PROJECT_ROOT),
+    )
+    if not status.stdout.strip():
+        return {"success": True, "log": "Нет изменений для коммита"}
+
     commands = [
         ["git", "add", "-A"],
         ["git", "commit", "-m", message],
@@ -122,7 +132,9 @@ def git_commit_and_push(message: str) -> dict:
             timeout=60,
         )
         outputs.append(f"{' '.join(cmd)}:\n{r.stdout}{r.stderr}")
-    return {"success": all("nothing to commit" in o or "Everything up-to-date" in o or "main -> main" in o for o in outputs), "log": "\n".join(outputs)}
+        if r.returncode != 0 and "nothing to commit" not in r.stdout:
+            return {"success": False, "log": "\n".join(outputs)}
+    return {"success": True, "log": "\n".join(outputs)}
 
 
 # ---------- Обработчики ----------
@@ -134,7 +146,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "я скачаю фото, обновлю каталог и запушу на сайт.\n\n"
         "Команды:\n"
         "/help — подробная справка\n"
-        "/list — последние добавленные модели"
+        "/list — последние добавленные модели\n"
+        "/addcat — добавить новую категорию\n"
+        "/addsub — добавить подкатегорию"
     )
 
 
@@ -146,10 +160,105 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "   https://makerworld.com/ru/models/2016647\n\n"
         "2. Я спрошу категорию — выбери из списка\n\n"
         "3. Готово! Модель добавлена на сайт\n\n"
-        "Формат: можно сразу указать категорию после ссылки:\n"
-        "/add https://makerworld.com/... home\n\n"
+        "Добавление категорий:\n"
+        "/addcat figures Фигурки\n"
+        "/addsub figures star-wars Star Wars\n\n"
         "Или просто отправь ссылку — я спрошу категорию."
     )
+
+
+def add_category_to_json(cat_id: str, cat_name: str) -> bool:
+    """Добавляет новую категорию в models.json."""
+    try:
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        # Проверяем, нет ли уже такой категории
+        for c in data.get("categories", []):
+            if c["id"] == cat_id:
+                return False
+        data["categories"].append({"id": cat_id, "name": cat_name})
+        with open(DATA_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        return True
+    except Exception:
+        return False
+
+
+def add_subcategory_to_json(cat_id: str, sub_id: str, sub_name: str) -> bool:
+    """Добавляет подкатегорию в models.json."""
+    try:
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        # Проверяем, существует ли категория
+        cat_exists = any(c["id"] == cat_id for c in data.get("categories", []))
+        if not cat_exists:
+            return False
+        # Инициализируем dict подкатегорий если нужно
+        if "subcategories" not in data:
+            data["subcategories"] = {}
+        if cat_id not in data["subcategories"]:
+            data["subcategories"][cat_id] = []
+        # Проверяем, нет ли уже такой подкатегории
+        for s in data["subcategories"][cat_id]:
+            if s["id"] == sub_id:
+                return False
+        data["subcategories"][cat_id].append({"id": sub_id, "name": sub_name})
+        with open(DATA_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        return True
+    except Exception:
+        return False
+
+
+async def add_category(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Добавить новую категорию: /addcat <id> <название>"""
+    if not context.args or len(context.args) < 2:
+        await update.message.reply_text(
+            "Формат: /addcat <id> <название>\n"
+            "Пример: /addcat figures Фигурки"
+        )
+        return
+
+    cat_id = context.args[0].lower().strip()
+    cat_name = " ".join(context.args[1:])
+
+    if add_category_to_json(cat_id, cat_name):
+        git_commit_and_push(f"Добавлена категория: {cat_name} ({cat_id})")
+        await update.message.reply_text(
+            f"✅ Категория добавлена!\n"
+            f"ID: {cat_id}\n"
+            f"Название: {cat_name}\n\n"
+            f"Теперь можно добавлять модели в неё."
+        )
+    else:
+        await update.message.reply_text("Ошибка: категория уже существует или неверные данные.")
+
+
+async def add_subcategory(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Добавить подкатегорию: /addsub <cat_id> <sub_id> <название>"""
+    if not context.args or len(context.args) < 3:
+        await update.message.reply_text(
+            "Формат: /addsub <cat_id> <sub_id> <название>\n"
+            "Пример: /addsub figures star-wars Star Wars"
+        )
+        return
+
+    cat_id = context.args[0].lower().strip()
+    sub_id = context.args[1].lower().strip()
+    sub_name = " ".join(context.args[2:])
+
+    if add_subcategory_to_json(cat_id, sub_id, sub_name):
+        git_commit_and_push(f"Добавлена подкатегория: {sub_name} ({cat_id}/{sub_id})")
+        await update.message.reply_text(
+            f"✅ Подкатегория добавлена!\n"
+            f"Категория: {cat_id}\n"
+            f"ID: {sub_id}\n"
+            f"Название: {sub_name}"
+        )
+    else:
+        await update.message.reply_text(
+            "Ошибка: подкатегория уже существует или категория не найдена."
+        )
 
 
 async def list_models(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -159,9 +268,10 @@ async def list_models(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Каталог пуст.")
         return
 
+    categories = load_categories()
     text = "Последние добавленные модели:\n\n"
     for i, m in enumerate(models, 1):
-        cat = CATEGORIES.get(m.get("category", ""), m.get("category", "?"))
+        cat = categories.get(m.get("category", ""), m.get("category", "?"))
         text += f"{i}. {m['name']}\n   Категория: {cat}\n   {m.get('url', '')}\n\n"
 
     await update.message.reply_text(text)
@@ -169,6 +279,11 @@ async def list_models(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def handle_url(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Обработка ссылки на модель."""
+    # Если ожидаем название модели — передаём в handle_model_name
+    if context.user_data.get("awaiting_name"):
+        await handle_model_name(update, context)
+        return
+
     text = update.message.text.strip()
 
     if not is_model_url(text):
@@ -181,9 +296,10 @@ async def handle_url(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["pending_url"] = text
 
     # Показываем кнопки категорий
+    categories = load_categories()
     keyboard = []
     row = []
-    for cat_id, cat_name in CATEGORIES.items():
+    for cat_id, cat_name in categories.items():
         row.append(InlineKeyboardButton(cat_name, callback_data=f"cat:{cat_id}"))
         if len(row) == 2:
             keyboard.append(row)
@@ -198,7 +314,7 @@ async def handle_url(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def category_selected(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Обработка выбора категории."""
+    """Обработка выбора категории — сохраняем категорию и запрашиваем название."""
     query = update.callback_query
     await query.answer()
 
@@ -209,49 +325,82 @@ async def category_selected(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_text("Ошибка: ссылка потерялась. Отправь заново.")
         return
 
-    cat_name = CATEGORIES.get(cat_id, cat_id)
-    await query.edit_message_text(f"Добавляю модель в категорию «{cat_name}»...")
+    categories = load_categories()
+    cat_name = categories.get(cat_id, cat_id)
+
+    # Сохраняем категорию и URL
+    context.user_data["pending_cat"] = cat_id
+    context.user_data["pending_cat_name"] = cat_name
+    context.user_data["awaiting_name"] = True
+
+    await query.edit_message_text(
+        f"Категория: «{cat_name}»\n\n"
+        f"Отправь название модели на русском языке.\n"
+        f"Или отправь «пропустить» — оставлю оригинальное название."
+    )
+
+
+async def handle_model_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработка названия модели от пользователя."""
+    if not context.user_data.get("awaiting_name"):
+        return False  # Не наш обработчик
+
+    text = update.message.text.strip()
+    url = context.user_data.get("pending_url")
+    cat_id = context.user_data.get("pending_cat")
+    cat_name = context.user_data.get("pending_cat_name")
+
+    # Определяем название
+    custom_name = None
+    if text.lower() not in ("пропустить", "skip", "-"):
+        custom_name = text
+
+    await update.message.reply_text(f"Добавляю модель в категорию «{cat_name}»...")
 
     # Запускаем add_model.py
     try:
-        result = run_add_model(url, cat=cat_id)
+        result = run_add_model(url, cat=cat_id, name=custom_name)
     except subprocess.TimeoutExpired:
-        await query.message.reply_text("Ошибка: скрипт завис. Попробуй позже.")
-        return
+        await update.message.reply_text("Ошибка: скрипт завис. Попробуй позже.")
+        return True
     except Exception as e:
-        await query.message.reply_text(f"Ошибка: {e}")
-        return
+        await update.message.reply_text(f"Ошибка: {e}")
+        return True
 
     if result["returncode"] != 0:
         error = result["stderr"].strip() or result["stdout"].strip()
-        await query.message.reply_text(f"Ошибка при добавлении:\n{error[:500]}")
-        return
+        await update.message.reply_text(f"Ошибка при добавлении:\n{error[:500]}")
+        return True
 
     # Парсим название из stdout
-    name = "модель"
+    name = custom_name or "модель"
     for line in result["stdout"].splitlines():
         if line.startswith("Название:"):
             name = line.split(":", 1)[1].strip()
             break
 
     # Коммитим и пушим
-    await query.message.reply_text(f"✅ «{name}» добавлена! Пушу на сайт...")
+    await update.message.reply_text(f"✅ «{name}» добавлена! Пушу на сайт...")
     git_result = git_commit_and_push(f"Добавлена модель: {name} (из Telegram)")
 
     if git_result["success"]:
-        await query.message.reply_text(
+        await update.message.reply_text(
             f"🎉 Готово!\n\n"
             f"Модель: {name}\n"
             f"Категория: {cat_name}\n"
             f"Сайт: https://borisig1999-spec.github.io/3d-landing/"
         )
     else:
-        await query.message.reply_text(
+        await update.message.reply_text(
             f"Модель добавлена, но пуш не удался:\n{git_result['log'][:500]}"
         )
 
     # Чистим
     context.user_data.pop("pending_url", None)
+    context.user_data.pop("pending_cat", None)
+    context.user_data.pop("pending_cat_name", None)
+    context.user_data.pop("awaiting_name", None)
+    return True
 
 
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -268,6 +417,8 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_cmd))
     app.add_handler(CommandHandler("list", list_models))
+    app.add_handler(CommandHandler("addcat", add_category))
+    app.add_handler(CommandHandler("addsub", add_subcategory))
     app.add_handler(CallbackQueryHandler(category_selected, pattern=r"^cat:"))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_url))
 
