@@ -297,11 +297,6 @@ async def list_models(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def handle_url(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Обработка ссылки на модель."""
-    # Если ожидаем название модели — передаём в handle_model_name
-    if context.user_data.get("awaiting_name"):
-        await handle_model_name(update, context)
-        return
-
     # Если ожидаем название новой категории
     if context.user_data.get("awaiting_new_cat"):
         await handle_new_category(update, context)
@@ -309,6 +304,11 @@ async def handle_url(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Если ожидаем кастомное название
     if context.user_data.get("awaiting_custom_name"):
+        await handle_model_name(update, context)
+        return
+
+    # Если ожидаем название модели
+    if context.user_data.get("awaiting_name"):
         await handle_model_name(update, context)
         return
 
