@@ -354,6 +354,73 @@ ul { list-style: none; }
   .usp-banner-btn { width: 100%; }
   .usp-banner { padding-bottom: 48px; }
 }
+
+/* ===== MakerWorld Banner ===== */
+.makerworld-banner {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  padding: 48px 0;
+}
+.makerworld-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.makerworld-content h2 {
+  font-size: clamp(24px, 3vw, 36px);
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+}
+.makerworld-content p {
+  font-size: 16px;
+  color: #475569;
+  line-height: 1.5;
+}
+@media (max-width: 700px) {
+  .makerworld-inner {
+    flex-direction: column;
+    text-align: center;
+    gap: 20px;
+  }
+}
+
+/* ===== Pickup Banner ===== */
+.pickup-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border: 1px solid #bbf7d0;
+  border-radius: 16px;
+  padding: 24px 28px;
+  margin-top: 40px;
+}
+.pickup-icon {
+  font-size: 40px;
+  flex-shrink: 0;
+}
+.pickup-content {
+  flex: 1;
+}
+.pickup-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.pickup-sub {
+  font-size: 15px;
+  color: #475569;
+  line-height: 1.4;
+}
+@media (max-width: 700px) {
+  .pickup-banner {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+    padding: 20px;
+  }
+}
 .marquee {
   background: #0a0a0a;
   color: #fff;
