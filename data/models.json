@@ -984,6 +984,19 @@
       "url": "https://makerworld.com/ru/models/1719881-rope-planter",
       "tags": [],
       "featured": false
+    },
+    {
+      "id": "relefnaya-vaza-volna",
+      "name": "Рельефная ваза \"Волна\"",
+      "category": "home",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/relefnaya-vaza-volna.webp",
+      "url": "https://makerworld.com/ru/models/993988-luna-vase#profileId-969960",
+      "tags": [],
+      "featured": false
     }
   ]
 }
