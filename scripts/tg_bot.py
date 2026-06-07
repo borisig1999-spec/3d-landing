@@ -302,6 +302,16 @@ async def handle_url(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await handle_model_name(update, context)
         return
 
+    # Если ожидаем название новой категории
+    if context.user_data.get("awaiting_new_cat"):
+        await handle_new_category(update, context)
+        return
+
+    # Если ожидаем кастомное название
+    if context.user_data.get("awaiting_custom_name"):
+        await handle_model_name(update, context)
+        return
+
     text = update.message.text.strip()
 
     if not is_model_url(text):
@@ -313,22 +323,61 @@ async def handle_url(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Сохраняем URL в контексте пользователя
     context.user_data["pending_url"] = text
 
+    # Пытаемся угадать категорию по URL
+    suggested_cat = guess_category_from_url(text)
+
     # Показываем кнопки категорий
     categories = load_categories()
     keyboard = []
     row = []
     for cat_id, cat_name in categories.items():
-        row.append(InlineKeyboardButton(cat_name, callback_data=f"cat:{cat_id}"))
+        # Если категория угадана — помечаем её звёздочкой
+        label = f"⭐ {cat_name}" if cat_id == suggested_cat else cat_name
+        row.append(InlineKeyboardButton(label, callback_data=f"cat:{cat_id}"))
         if len(row) == 2:
             keyboard.append(row)
             row = []
     if row:
         keyboard.append(row)
 
+    # Добавляем кнопку "Новая категория"
+    keyboard.append([InlineKeyboardButton("➕ Новая категория", callback_data="cat:new")])
+
+    hint = ""
+    if suggested_cat:
+        cat_name = categories.get(suggested_cat, suggested_cat)
+        hint = f"💡 Предлагаю: «{cat_name}»\n\n"
+
     await update.message.reply_text(
-        "Получил ссылку! Выбери категорию:",
+        f"{hint}Получил ссылку! Выбери категорию:",
         reply_markup=InlineKeyboardMarkup(keyboard),
     )
+
+
+def guess_category_from_url(url: str) -> str:
+    """Пытается угадать категорию по URL модели."""
+    url_lower = url.lower()
+
+    # Простые правила по ключевым словам в URL
+    keywords = {
+        "home": ["home", "house", "decor", "interior", "planter", "vase", "lamp", "light", "holder", "hook", "shelf", "box", "container", "storage"],
+        "kitchen": ["kitchen", "mug", "cup", "plate", "spoon", "fork", "knife", "organizer", "rack"],
+        "figures": ["figure", "statue", "figurine", "character", "robot", "dragon", "warrior", "batman", "star-wars", "marvel", "lotr", "gollum", "gate", "minas"],
+        "games": ["game", "chess", "dice", "token", "miniature", "dnd", "warhammer", "puzzle"],
+        "tools": ["tool", "wrench", "holder", "clip", "mount", "bracket", "adapter", "gadget"],
+        "auto": ["car", "auto", "vehicle", "bike", "motorcycle", "phone-holder", "charger", "cable"],
+        "lighting": ["lamp", "light", "led", "chandelier", "sconce", "lantern"],
+        "storage": ["storage", "organizer", "drawer", "shelf", "rack", "stand", "case"],
+        "wardrobe": ["hanger", "hook", "closet", "wardrobe", "shoe", "belt"],
+        "parts": ["part", "gear", "bearing", "bushing", "connector", "screw", "bolt", "nut"],
+    }
+
+    for cat_id, words in keywords.items():
+        for word in words:
+            if word in url_lower:
+                return cat_id
+
+    return None
 
 
 async def category_selected(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -341,6 +390,15 @@ async def category_selected(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if not url:
         await query.edit_message_text("Ошибка: ссылка потерялась. Отправь заново.")
+        return
+
+    # Если выбрана "Новая категория"
+    if cat_id == "new":
+        context.user_data["awaiting_new_cat"] = True
+        await query.edit_message_text(
+            "Отправь название новой категории на русском.\n"
+            "Например: «Одежда» или «Автозапчасти»"
+        )
         return
 
     categories = load_categories()
@@ -383,6 +441,47 @@ async def category_selected(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"Выбери название или напиши своё:",
         reply_markup=InlineKeyboardMarkup(keyboard),
     )
+
+
+async def handle_new_category(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработка ввода названия новой категории."""
+    cat_name = update.message.text.strip()
+
+    # Генерируем ID из названия
+    cat_id = re.sub(r'[^a-zа-я0-9]', '-', cat_name.lower()).strip('-')
+    cat_id = re.sub(r'-+', '-', cat_id)
+
+    if not cat_id:
+        await update.message.reply_text("Некорректное название. Попробуй ещё раз.")
+        return
+
+    # Добавляем категорию
+    if add_category_to_json(cat_id, cat_name):
+        git_commit_and_push(f"Добавлена категория: {cat_name} ({cat_id})")
+
+        # Сохраняем и показываем кнопки категорий заново
+        context.user_data["awaiting_new_cat"] = False
+        url = context.user_data.get("pending_url")
+
+        categories = load_categories()
+        keyboard = []
+        row = []
+        for cid, cname in categories.items():
+            label = f"⭐ {cname}" if cid == cat_id else cname
+            row.append(InlineKeyboardButton(label, callback_data=f"cat:{cid}"))
+            if len(row) == 2:
+                keyboard.append(row)
+                row = []
+        if row:
+            keyboard.append(row)
+        keyboard.append([InlineKeyboardButton("➕ Новая категория", callback_data="cat:new")])
+
+        await update.message.reply_text(
+            f"✅ Категория «{cat_name}» создана!\n\nТеперь выбери её:",
+            reply_markup=InlineKeyboardMarkup(keyboard),
+        )
+    else:
+        await update.message.reply_text("Ошибка: категория уже существует.")
 
 
 async def name_selected(update: Update, context: ContextTypes.DEFAULT_TYPE):
