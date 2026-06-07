@@ -971,6 +971,19 @@
         "декор"
       ],
       "featured": true
+    },
+    {
+      "id": "rope-planter",
+      "name": "Rope Planter",
+      "category": "home",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/rope-planter.webp",
+      "url": "https://makerworld.com/ru/models/1719881-rope-planter",
+      "tags": [],
+      "featured": false
     }
   ]
 }
