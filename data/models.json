@@ -1003,6 +1003,19 @@
       "url": "https://makerworld.com/ru/models/993988-luna-vase#profileId-969960",
       "tags": [],
       "featured": false
+    },
+    {
+      "id": "kalendar-krugi",
+      "name": "Календарь \"Круги\"",
+      "category": "home",
+      "subcategory": "календарь",
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/kalendar-krugi.webp",
+      "url": "https://makerworld.com/ru/models/1170513-ring-a-date-calendar-perpetual-calendar",
+      "tags": [],
+      "featured": false
     }
   ]
 }
