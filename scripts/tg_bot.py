@@ -32,6 +32,24 @@ from telegram.ext import (
     filters,
 )
 
+# ---------- Автоперевод ----------
+try:
+    from deep_translator import GoogleTranslator
+    TRANSLATOR = GoogleTranslator(source='en', target='ru')
+except Exception:
+    TRANSLATOR = None
+
+
+def translate_to_ru(text: str) -> str:
+    """Переводит текст с английского на русский. В случае ошибки — возвращает оригинал."""
+    if not TRANSLATOR:
+        return text
+    try:
+        translated = TRANSLATOR.translate(text)
+        return translated if translated else text
+    except Exception:
+        return text
+
 # ---------- НАСТРОЙКИ ----------
 TOKEN = os.environ.get("TG_BOT_TOKEN", "8970161294:AAH7QNp4MUoE586DRTIbPKHVJPJLlqdICu0")
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -314,7 +332,7 @@ async def handle_url(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def category_selected(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Обработка выбора категории — сохраняем категорию и запрашиваем название."""
+    """Обработка выбора категории — показывает оригинальное название и перевод."""
     query = update.callback_query
     await query.answer()
 
@@ -328,34 +346,156 @@ async def category_selected(update: Update, context: ContextTypes.DEFAULT_TYPE):
     categories = load_categories()
     cat_name = categories.get(cat_id, cat_id)
 
-    # Сохраняем категорию и URL
+    # Сохраняем категорию
     context.user_data["pending_cat"] = cat_id
     context.user_data["pending_cat_name"] = cat_name
-    context.user_data["awaiting_name"] = True
+
+    # Получаем оригинальное название (быстро, без браузера)
+    original_name = "модель"
+    try:
+        # Пробуем достать название из URL или описания
+        if "models/" in url:
+            # Извлекаем из URL
+            match = re.search(r'models/\d+-(.+?)(?:\?|$)', url)
+            if match:
+                original_name = match.group(1).replace('-', ' ').title()
+    except Exception:
+        pass
+
+    # Переводим
+    translated_name = translate_to_ru(original_name)
+
+    # Сохраняем оба варианта
+    context.user_data["original_name"] = original_name
+    context.user_data["translated_name"] = translated_name
+
+    # Показываем варианты с кнопками
+    keyboard = [
+        [InlineKeyboardButton(f"✅ «{translated_name}»", callback_data="name:translated")],
+        [InlineKeyboardButton(f"Оригинал: «{original_name}»", callback_data="name:original")],
+        [InlineKeyboardButton("✏️ Написать своё", callback_data="name:custom")],
+    ]
 
     await query.edit_message_text(
         f"Категория: «{cat_name}»\n\n"
-        f"Отправь название модели на русском языке.\n"
-        f"Или отправь «пропустить» — оставлю оригинальное название."
+        f"Оригинал: {original_name}\n"
+        f"Перевод: {translated_name}\n\n"
+        f"Выбери название или напиши своё:",
+        reply_markup=InlineKeyboardMarkup(keyboard),
     )
+
+
+async def name_selected(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработка выбора названия модели."""
+    query = update.callback_query
+    await query.answer()
+
+    choice = query.data.split(":")[1]
+    url = context.user_data.get("pending_url")
+    cat_id = context.user_data.get("pending_cat")
+    cat_name = context.user_data.get("pending_cat_name")
+    original_name = context.user_data.get("original_name", "модель")
+    translated_name = context.user_data.get("translated_name", "модель")
+
+    if choice == "translated":
+        final_name = translated_name
+    elif choice == "original":
+        final_name = original_name
+    else:
+        # custom — запрашиваем ввод
+        context.user_data["awaiting_custom_name"] = True
+        await query.edit_message_text("Отправь название модели на русском:")
+        return
+
+    await query.edit_message_text(f"Добавляю «{final_name}» в категорию «{cat_name}»...")
+
+    # Запускаем add_model.py
+    try:
+        result = run_add_model(url, cat=cat_id, name=final_name)
+    except subprocess.TimeoutExpired:
+        await query.message.reply_text("Ошибка: скрипт завис. Попробуй позже.")
+        return
+    except Exception as e:
+        await query.message.reply_text(f"Ошибка: {e}")
+        return
+
+    if result["returncode"] != 0:
+        error = result["stderr"].strip() or result["stdout"].strip()
+        await query.message.reply_text(f"Ошибка при добавлении:\n{error[:500]}")
+        return
+
+    # Коммитим и пушим
+    await query.message.reply_text(f"✅ «{final_name}» добавлена! Пушу на сайт...")
+    git_result = git_commit_and_push(f"Добавлена модель: {final_name} (из Telegram)")
+
+    if git_result["success"]:
+        await query.message.reply_text(
+            f"🎉 Готово!\n\n"
+            f"Модель: {final_name}\n"
+            f"Категория: {cat_name}\n"
+            f"Сайт: https://borisig1999-spec.github.io/3d-landing/"
+        )
+    else:
+        await query.message.reply_text(
+            f"Модель добавлена, но пуш не удался:\n{git_result['log'][:500]}"
+        )
+
+    # Чистим
+    for key in ["pending_url", "pending_cat", "pending_cat_name", "original_name", "translated_name"]:
+        context.user_data.pop(key, None)
 
 
 async def handle_model_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Обработка названия модели от пользователя."""
-    if not context.user_data.get("awaiting_name"):
-        return False  # Не наш обработчик
+    # Если ожидаем кастомное название
+    if context.user_data.get("awaiting_custom_name"):
+        context.user_data["awaiting_custom_name"] = False
+        text = update.message.text.strip()
+        url = context.user_data.get("pending_url")
+        cat_id = context.user_data.get("pending_cat")
+        cat_name = context.user_data.get("pending_cat_name")
 
-    text = update.message.text.strip()
-    url = context.user_data.get("pending_url")
-    cat_id = context.user_data.get("pending_cat")
-    cat_name = context.user_data.get("pending_cat_name")
+        final_name = text
 
-    # Определяем название
-    custom_name = None
-    if text.lower() not in ("пропустить", "skip", "-"):
-        custom_name = text
+        await update.message.reply_text(f"Добавляю «{final_name}» в категорию «{cat_name}»...")
 
-    await update.message.reply_text(f"Добавляю модель в категорию «{cat_name}»...")
+        # Запускаем add_model.py
+        try:
+            result = run_add_model(url, cat=cat_id, name=final_name)
+        except subprocess.TimeoutExpired:
+            await update.message.reply_text("Ошибка: скрипт завис. Попробуй позже.")
+            return True
+        except Exception as e:
+            await update.message.reply_text(f"Ошибка: {e}")
+            return True
+
+        if result["returncode"] != 0:
+            error = result["stderr"].strip() or result["stdout"].strip()
+            await update.message.reply_text(f"Ошибка при добавлении:\n{error[:500]}")
+            return True
+
+        # Коммитим и пушим
+        await update.message.reply_text(f"✅ «{final_name}» добавлена! Пушу на сайт...")
+        git_result = git_commit_and_push(f"Добавлена модель: {final_name} (из Telegram)")
+
+        if git_result["success"]:
+            await update.message.reply_text(
+                f"🎉 Готово!\n\n"
+                f"Модель: {final_name}\n"
+                f"Категория: {cat_name}\n"
+                f"Сайт: https://borisig1999-spec.github.io/3d-landing/"
+            )
+        else:
+            await update.message.reply_text(
+                f"Модель добавлена, но пуш не удался:\n{git_result['log'][:500]}"
+            )
+
+        # Чистим
+        for key in ["pending_url", "pending_cat", "pending_cat_name", "original_name", "translated_name"]:
+            context.user_data.pop(key, None)
+        return True
+
+    return False
 
     # Запускаем add_model.py
     try:
@@ -420,6 +560,7 @@ def main():
     app.add_handler(CommandHandler("addcat", add_category))
     app.add_handler(CommandHandler("addsub", add_subcategory))
     app.add_handler(CallbackQueryHandler(category_selected, pattern=r"^cat:"))
+    app.add_handler(CallbackQueryHandler(name_selected, pattern=r"^name:"))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_url))
 
     logger.info("Бот запущен!")
