@@ -1020,6 +1020,19 @@
       "url": "https://makerworld.com/ru/models/1170513-ring-a-date-calendar-perpetual-calendar",
       "tags": [],
       "featured": false
+    },
+    {
+      "id": "veshalka-s-avtomaticheskoy-blokirovkoy",
+      "name": "Вешалка с автоматической блокировкой, гравитационный крючок для полотенец, ребристая",
+      "category": "storage",
+      "subcategory": "крючки",
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/veshalka-s-avtomaticheskoy-blokirovkoy.webp",
+      "url": "https://makerworld.com/ru/models/1971172-auto-locking-hanger-gravity-towel-hook-ribbed",
+      "tags": [],
+      "featured": false
     }
   ]
 }
