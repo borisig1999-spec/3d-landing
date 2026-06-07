@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://borisig1999-spec.github.io/3d-landing/sitemap.xml
