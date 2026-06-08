@@ -19,3 +19,6 @@ _inbox/
 # Python
 __pycache__/
 *.pyc
+
+# Logs
+logs/
