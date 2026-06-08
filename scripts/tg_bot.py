@@ -90,7 +90,7 @@ logger = logging.getLogger(__name__)
 def is_model_url(text: str) -> bool:
     """Проверяет, похожа ли строка на URL модели."""
     patterns = [
-        r"makerworld\.com/.*/models/",
+        r"makerworld\.com/.*/?models/",
         r"thingiverse\.com/thing:",
         r"printables\.com/model/",
     ]
