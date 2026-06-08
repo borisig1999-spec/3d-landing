@@ -1188,6 +1188,19 @@
       "url": "https://makerworld.com/ru/models/2767974-spice-packet-organizer-135mm-no-supports",
       "tags": [],
       "featured": false
+    },
+    {
+      "id": "zazhim-dlya-spetsiy",
+      "name": "зажим для специй",
+      "category": "kitchen",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": 2.4,
+      "printTime": 2,
+      "image": "images/zazhim-dlya-spetsiy.webp",
+      "url": "https://makerworld.com/ru/models/2711115-bag-clip#profileId-3002034",
+      "tags": [],
+      "featured": false
     }
   ]
 }
