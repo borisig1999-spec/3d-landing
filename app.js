@@ -37,9 +37,20 @@
     return sub ? sub.name : subId;
   }
 
-  function formatSpec(model) {
+  function getPricing() {
+    const el = document.getElementById('hero-pricing');
+    if (!el) return { smallPrice: 10, largePrice: 5, threshold: 10 };
+    return {
+      smallPrice: parseFloat(el.dataset.smallPrice) || 10,
+      largePrice: parseFloat(el.dataset.largePrice) || 5,
+      threshold: parseFloat(el.dataset.threshold) || 10,
+    };
+  }
+
+  function estimateCost(model) {
     if (model.weight == null) return null;
-    const price = model.weight < 10 ? 10 : 5;
+    const p = getPricing();
+    const price = model.weight < p.threshold ? p.smallPrice : p.largePrice;
     return Math.round(model.weight * price);
   }
 
