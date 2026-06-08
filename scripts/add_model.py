@@ -342,11 +342,17 @@ def fetch_page(url: str, project_root: Path) -> dict:
             try:
                 body_text = page.inner_text('body', timeout=3000)
                 if not result.get('printTime'):
-                    times = re.findall(r'(\d+)\s*(?:min|minute|ч|мин|h)', body_text, re.I)
+                    matches = re.findall(r'(\d+)\s*min.*?plate|plate.*?(\d+)\s*min', body_text, re.I | re.S)
+                    times = []
+                    for m in matches:
+                        t = m[0] or m[1]
+                        if t:
+                            times.append(int(t))
+                    if not times:
+                        times_all = re.findall(r'(\d+)\s*min', body_text, re.I)
+                        times = [int(t) for t in times_all if 5 < int(t) < 10000]
                     if times:
-                        minutes = [int(t) for t in times if 1 < int(t) < 10000]
-                        if minutes:
-                            result['printTime'] = min(minutes)
+                        result['printTime'] = min(times)
                 if not result.get('weight'):
                     weights = re.findall(r'(\d+\.?\d*)\s*(?:g|gram|грамм|г)\b', body_text, re.I)
                     if weights:

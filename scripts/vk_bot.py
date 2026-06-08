@@ -747,12 +747,16 @@ def add_model(vk, event, state, final_name):
         except Exception:
             pass
 
+        keyboard = VkKeyboard(one_time=True)
+        keyboard.add_callback_button("Пропустить", color=VkKeyboardColor.SECONDARY, payload={"type": "text", "text": "пропустить"})
+
         vk.messages.send(
             peer_id=event.obj.message["peer_id"],
             message=(
                 f"✅ «{final_name}» добавлена и запушена!\n\n"
-                f"Укажи вес модели в граммах (или «пропустить»):"
+                f"Укажи вес модели в граммах:"
             ),
+            keyboard=keyboard.get_keyboard(),
             random_id=event.obj.message["random_id"],
         )
         state["awaiting_weight"] = True
@@ -817,11 +821,14 @@ def handle_weight_input(vk, event, text, state):
     state["weight"] = weight
     state["awaiting_weight"] = False
     state["awaiting_time"] = True
-    state["awaiting_name"] = False
+
+    keyboard = VkKeyboard(one_time=True)
+    keyboard.add_callback_button("Пропустить", color=VkKeyboardColor.SECONDARY, payload={"type": "text", "text": "пропустить"})
 
     vk.messages.send(
         peer_id=peer_id,
-        message=f"Вес: {weight} г\n\nУкажи примерное время печати в минутах (или «пропустить»):",
+        message=f"Вес: {weight} г\n\nУкажи примерное время печати в минутах:",
+        keyboard=keyboard.get_keyboard(),
         random_id=event.obj.message["random_id"],
     )
 
