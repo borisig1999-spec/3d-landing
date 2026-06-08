@@ -21,6 +21,10 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Загружаем переменные из .env файла
+load_dotenv(Path(__file__).resolve().parent.parent / '.env')
 
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
