@@ -147,7 +147,7 @@
       "subcategory": "ikea-skadis",
       "material": "PLA",
       "weight": null,
-      "printTime": null,
+      "printTime": 50,
       "image": "images/икеа система хранения.png",
       "url": "https://makerworld.com/ru/models/799571-ikea-skadis-add-ons-parametric-bins-and-shelves",
       "tags": [
