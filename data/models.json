@@ -1076,6 +1076,19 @@
       "url": "https://makerworld.com/ru/models/2287605-vader-bookend",
       "tags": [],
       "featured": false
+    },
+    {
+      "id": "podstavka-pod-knigi-garri-potter-lestnitsy",
+      "name": "Подставка под книги: Гарри Поттер лестницы",
+      "category": "figures",
+      "subcategory": "гарри-поттер",
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/podstavka-pod-knigi-garri-potter-lestnitsy.webp",
+      "url": "https://makerworld.com/ru/models/1148226-harry-potter-hogwarts-book-nook#profileId-1151983",
+      "tags": [],
+      "featured": false
     }
   ]
 }
