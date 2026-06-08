@@ -325,6 +325,16 @@ def handle_message(vk, event):
         handle_custom_name(vk, event, text, state)
         return
 
+    # Если ожидаем ввод веса
+    if state.get("awaiting_weight"):
+        handle_weight_input(vk, event, text, state)
+        return
+
+    # Если ожидаем ввод времени
+    if state.get("awaiting_time"):
+        handle_time_input(vk, event, text, state)
+        return
+
     # Если это ссылка на модель
     if is_model_url(text):
         state["url"] = text
@@ -714,34 +724,133 @@ def add_model(vk, event, state, final_name):
     git_result = git_commit_and_push(f"Добавлена модель: {final_name} (из VK)")
 
     if git_result["success"]:
-        model_info = f"Модель: {final_name}\nКатегория: {cat_name}"
+        state["last_model_id"] = None
         try:
             model_json = json.loads(result["stdout"].strip().split('\n')[-1])
-            if model_json.get("printTime"):
-                pt = model_json['printTime']
-                if pt > 60:
-                    model_info += f"\nВремя печати: {round(pt/60, 1)} ч"
-                else:
-                    model_info += f"\nВремя печати: {pt} мин"
-            if model_json.get("weight"):
-                model_info += f"\nВес: {model_json['weight']} г"
+            state["last_model_id"] = model_json.get("id")
         except Exception:
             pass
+
         vk.messages.send(
             peer_id=event.obj.message["peer_id"],
             message=(
-                f"🎉 Готово!\n\n"
-                f"{model_info}\n"
-                f"Сайт: https://borisig1999-spec.github.io/3d-landing/"
+                f"✅ «{final_name}» добавлена и запушена!\n\n"
+                f"Укажи вес модели в граммах (или «пропустить»):"
             ),
             random_id=event.obj.message["random_id"],
         )
+        state["awaiting_weight"] = True
     else:
         vk.messages.send(
             peer_id=event.obj.message["peer_id"],
             message=f"Модель добавлена, но пуш не удался:\n{git_result['log'][:500]}",
             random_id=event.obj.message["random_id"],
         )
+        clear_user_state(user_id)
+
+    clear_user_state(user_id)
+
+
+def update_model_data(model_id, weight=None, print_time=None):
+    """Обновляет вес и время печати модели в models.json."""
+    try:
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        for m in data.get("models", []):
+            if m.get("id") == model_id:
+                if weight is not None:
+                    m["weight"] = weight
+                if print_time is not None:
+                    m["printTime"] = print_time
+                break
+        with open(DATA_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        return True
+    except Exception:
+        return False
+
+
+def handle_weight_input(vk, event, text, state):
+    """Обработка ввода веса."""
+    user_id = event.obj.message["from_id"]
+    peer_id = event.obj.message["peer_id"]
+
+    if text.lower() in ("пропустить", "skip", "-", "дальше"):
+        state["awaiting_weight"] = False
+        state["awaiting_time"] = True
+        vk.messages.send(
+            peer_id=peer_id,
+            message="Ок. Укажи примерное время печати в минутах (или «пропустить»):",
+            random_id=event.obj.message["random_id"],
+        )
+        return
+
+    try:
+        weight = float(text.replace(",", ".").strip())
+    except ValueError:
+        vk.messages.send(
+            peer_id=peer_id,
+            message="Не понял число. Введи вес в граммах (например 45) или «пропустить»:",
+            random_id=event.obj.message["random_id"],
+        )
+        return
+
+    state["weight"] = weight
+    state["awaiting_weight"] = False
+    state["awaiting_time"] = True
+
+    vk.messages.send(
+        peer_id=peer_id,
+        message=f"Вес: {weight} г\n\nУкажи примерное время печати в минутах (или «пропустить»):",
+        random_id=event.obj.message["random_id"],
+    )
+
+
+def handle_time_input(vk, event, text, state):
+    """Обработка ввода времени печати."""
+    user_id = event.obj.message["from_id"]
+    peer_id = event.obj.message["peer_id"]
+
+    print_time = None
+    if text.lower() not in ("пропустить", "skip", "-", "дальше"):
+        try:
+            print_time = float(text.replace(",", ".").strip())
+        except ValueError:
+            vk.messages.send(
+                peer_id=peer_id,
+                message="Не понял число. Введи время в минутах (например 45) или «пропустить»:",
+                random_id=event.obj.message["random_id"],
+            )
+            return
+
+    weight = state.get("weight")
+    model_id = state.get("last_model_id")
+
+    if model_id and (weight or print_time):
+        ok = update_model_data(model_id, weight=weight, print_time=print_time)
+        if ok:
+            git_commit_and_push(f"Обновлены данные модели: {model_id}")
+
+    # Финальное сообщение
+    info = []
+    if weight:
+        info.append(f"Вес: {weight} г")
+    if print_time:
+        if print_time > 60:
+            info.append(f"Время печати: {round(print_time/60, 1)} ч")
+        else:
+            info.append(f"Время печати: {print_time} мин")
+    info_text = "\n".join(info) if info else "Данные не указаны"
+
+    vk.messages.send(
+        peer_id=peer_id,
+        message=(
+            f"🎉 Готово!\n\n"
+            f"{info_text}\n"
+            f"Сайт: https://borisig1999-spec.github.io/3d-landing/"
+        ),
+        random_id=event.obj.message["random_id"],
+    )
 
     clear_user_state(user_id)
 

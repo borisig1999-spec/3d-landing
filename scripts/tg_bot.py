@@ -317,8 +317,100 @@ async def list_models(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(text)
 
 
+def update_model_data(model_id, weight=None, print_time=None):
+    """Обновляет вес и время печати модели в models.json."""
+    try:
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        for m in data.get("models", []):
+            if m.get("id") == model_id:
+                if weight is not None:
+                    m["weight"] = weight
+                if print_time is not None:
+                    m["printTime"] = print_time
+                break
+        with open(DATA_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        return True
+    except Exception:
+        return False
+
+
+async def handle_weight_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработка ввода веса."""
+    text = update.message.text.strip()
+
+    if text.lower() in ("пропустить", "skip", "-", "дальше"):
+        context.user_data["awaiting_weight"] = False
+        context.user_data["awaiting_time"] = True
+        await update.message.reply_text("Ок. Укажи примерное время печати в минутах (или «пропустить»):")
+        return
+
+    try:
+        weight = float(text.replace(",", ".").strip())
+    except ValueError:
+        await update.message.reply_text("Не понял число. Введи вес в граммах (например 45) или «пропустить»:")
+        return
+
+    context.user_data["weight"] = weight
+    context.user_data["awaiting_weight"] = False
+    context.user_data["awaiting_time"] = True
+    await update.message.reply_text(f"Вес: {weight} г\n\nУкажи примерное время печати в минутах (или «пропустить»):")
+
+
+async def handle_time_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработка ввода времени печати."""
+    text = update.message.text.strip()
+
+    print_time = None
+    if text.lower() not in ("пропустить", "skip", "-", "дальше"):
+        try:
+            print_time = float(text.replace(",", ".").strip())
+        except ValueError:
+            await update.message.reply_text("Не понял число. Введи время в минутах (например 45) или «пропустить»:")
+            return
+
+    weight = context.user_data.get("weight")
+    model_id = context.user_data.get("last_model_id")
+
+    if model_id and (weight or print_time):
+        ok = update_model_data(model_id, weight=weight, print_time=print_time)
+        if ok:
+            git_commit_and_push(f"Обновлены данные модели: {model_id}")
+
+    info = []
+    if weight:
+        info.append(f"Вес: {weight} г")
+    if print_time:
+        if print_time > 60:
+            info.append(f"Время печати: {round(print_time/60, 1)} ч")
+        else:
+            info.append(f"Время печати: {print_time} мин")
+    info_text = "\n".join(info) if info else "Данные не указаны"
+
+    await update.message.reply_text(
+        f"🎉 Готово!\n\n"
+        f"{info_text}\n"
+        f"Сайт: https://borisig1999-spec.github.io/3d-landing/"
+    )
+
+    for key in ["pending_url", "pending_cat", "pending_cat_name", "original_name", "translated_name",
+                 "awaiting_weight", "awaiting_time", "weight", "last_model_id"]:
+        context.user_data.pop(key, None)
+
+
 async def handle_url(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Обработка ссылки на модель."""
+    # Если ожидаем вес
+    if context.user_data.get("awaiting_weight"):
+        await handle_weight_input(update, context)
+        return
+
+    # Если ожидаем время печати
+    if context.user_data.get("awaiting_time"):
+        await handle_time_input(update, context)
+        return
+
     # Если ожидаем название новой категории
     if context.user_data.get("awaiting_new_cat"):
         await handle_new_category(update, context)
@@ -669,32 +761,24 @@ async def name_selected(update: Update, context: ContextTypes.DEFAULT_TYPE):
     git_result = git_commit_and_push(f"Добавлена модель: {final_name} (из Telegram)")
 
     if git_result["success"]:
-        model_info = f"Модель: {final_name}\nКатегория: {cat_name}"
+        model_id = None
         try:
             model_json = json.loads(result["stdout"].strip().split('\n')[-1])
-            if model_json.get("printTime"):
-                pt = model_json['printTime']
-                if pt > 60:
-                    model_info += f"\nВремя печати: {round(pt/60, 1)} ч"
-                else:
-                    model_info += f"\nВремя печати: {pt} мин"
-            if model_json.get("weight"):
-                model_info += f"\nВес: {model_json['weight']} г"
+            model_id = model_json.get("id")
         except Exception:
             pass
+        context.user_data["last_model_id"] = model_id
+        context.user_data["awaiting_weight"] = True
         await query.message.reply_text(
-            f"🎉 Готово!\n\n"
-            f"{model_info}\n"
-            f"Сайт: https://borisig1999-spec.github.io/3d-landing/"
+            f"✅ «{final_name}» добавлена и запушена!\n\n"
+            f"Укажи вес модели в граммах (или «пропустить»):"
         )
     else:
         await query.message.reply_text(
             f"Модель добавлена, но пуш не удался:\n{git_result['log'][:500]}"
         )
-
-    # Чистим
-    for key in ["pending_url", "pending_cat", "pending_cat_name", "original_name", "translated_name"]:
-        context.user_data.pop(key, None)
+        for key in ["pending_url", "pending_cat", "pending_cat_name", "original_name", "translated_name"]:
+            context.user_data.pop(key, None)
 
 
 async def handle_model_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -732,23 +816,17 @@ async def handle_model_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
         git_result = git_commit_and_push(f"Добавлена модель: {final_name} (из Telegram)")
 
         if git_result["success"]:
-            model_info = f"Модель: {final_name}\nКатегория: {cat_name}"
+            model_id = None
             try:
                 model_json = json.loads(result["stdout"].strip().split('\n')[-1])
-                if model_json.get("printTime"):
-                    pt = model_json['printTime']
-                    if pt > 60:
-                        model_info += f"\nВремя печати: {round(pt/60, 1)} ч"
-                    else:
-                        model_info += f"\nВремя печати: {pt} мин"
-                if model_json.get("weight"):
-                    model_info += f"\nВес: {model_json['weight']} г"
+                model_id = model_json.get("id")
             except Exception:
                 pass
+            context.user_data["last_model_id"] = model_id
+            context.user_data["awaiting_weight"] = True
             await update.message.reply_text(
-                f"🎉 Готово!\n\n"
-                f"{model_info}\n"
-                f"Сайт: https://borisig1999-spec.github.io/3d-landing/"
+                f"✅ «{final_name}» добавлена и запушена!\n\n"
+                f"Укажи вес модели в граммах (или «пропустить»):"
             )
         else:
             await update.message.reply_text(
