@@ -669,10 +669,22 @@ async def name_selected(update: Update, context: ContextTypes.DEFAULT_TYPE):
     git_result = git_commit_and_push(f"Добавлена модель: {final_name} (из Telegram)")
 
     if git_result["success"]:
+        model_info = f"Модель: {final_name}\nКатегория: {cat_name}"
+        try:
+            model_json = json.loads(result["stdout"].strip().split('\n')[-1])
+            if model_json.get("printTime"):
+                pt = model_json['printTime']
+                if pt > 60:
+                    model_info += f"\nВремя печати: {round(pt/60, 1)} ч"
+                else:
+                    model_info += f"\nВремя печати: {pt} мин"
+            if model_json.get("weight"):
+                model_info += f"\nВес: {model_json['weight']} г"
+        except Exception:
+            pass
         await query.message.reply_text(
             f"🎉 Готово!\n\n"
-            f"Модель: {final_name}\n"
-            f"Категория: {cat_name}\n"
+            f"{model_info}\n"
             f"Сайт: https://borisig1999-spec.github.io/3d-landing/"
         )
     else:
@@ -720,10 +732,22 @@ async def handle_model_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
         git_result = git_commit_and_push(f"Добавлена модель: {final_name} (из Telegram)")
 
         if git_result["success"]:
+            model_info = f"Модель: {final_name}\nКатегория: {cat_name}"
+            try:
+                model_json = json.loads(result["stdout"].strip().split('\n')[-1])
+                if model_json.get("printTime"):
+                    pt = model_json['printTime']
+                    if pt > 60:
+                        model_info += f"\nВремя печати: {round(pt/60, 1)} ч"
+                    else:
+                        model_info += f"\nВремя печати: {pt} мин"
+                if model_json.get("weight"):
+                    model_info += f"\nВес: {model_json['weight']} г"
+            except Exception:
+                pass
             await update.message.reply_text(
                 f"🎉 Готово!\n\n"
-                f"Модель: {final_name}\n"
-                f"Категория: {cat_name}\n"
+                f"{model_info}\n"
                 f"Сайт: https://borisig1999-spec.github.io/3d-landing/"
             )
         else:

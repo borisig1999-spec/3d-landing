@@ -193,7 +193,9 @@ def extract_makerworld(api_json: dict) -> dict:
             t = (c.get('printing_time') or c.get('print_time') or
                  c.get('printTime') or c.get('printingTime'))
             if isinstance(t, (int, float)):
-                result['printTime'] = round(t, 1)
+                if t > 500:
+                    t = round(t / 60, 1)
+                result['printTime'] = t
         if not result.get('image'):
             img = c.get('cover') or c.get('cover_image') or c.get('cover_image_url') or c.get('image')
             if isinstance(img, str):
@@ -335,6 +337,25 @@ def fetch_page(url: str, project_root: Path) -> dict:
             except Exception:
                 pass
 
+        # 4.5. Скрейпинг времени печати и веса со страницы (fallback)
+        if not result.get('printTime') or not result.get('weight'):
+            try:
+                body_text = page.inner_text('body', timeout=3000)
+                if not result.get('printTime'):
+                    times = re.findall(r'(\d+)\s*(?:min|minute|ч|мин|h)', body_text, re.I)
+                    if times:
+                        minutes = [int(t) for t in times if 1 < int(t) < 10000]
+                        if minutes:
+                            result['printTime'] = min(minutes)
+                if not result.get('weight'):
+                    weights = re.findall(r'(\d+\.?\d*)\s*(?:g|gram|грамм|г)\b', body_text, re.I)
+                    if weights:
+                        grams = [float(w) for w in weights if 0.1 < float(w) < 50000]
+                        if grams:
+                            result['weight'] = round(min(grams), 1)
+            except Exception:
+                pass
+
         result['site'] = 'makerworld' if 'makerworld' in url else (
             'thingiverse' if 'thingiverse' in url else (
             'printables' if 'printables' in url else 'unknown'))
@@ -456,7 +477,11 @@ def main():
     if data.get('weight'):
         print(f'Вес: {data["weight"]} г', file=sys.stderr)
     if data.get('printTime'):
-        print(f'Время печати: {data["printTime"]} ч', file=sys.stderr)
+        pt = data['printTime']
+        if pt > 60:
+            print(f'Время печати: {round(pt/60, 1)} ч', file=sys.stderr)
+        else:
+            print(f'Время печати: {pt} мин', file=sys.stderr)
     print(f'Фото URL: {data["image"]}', file=sys.stderr)
 
     # Slug → имя файла

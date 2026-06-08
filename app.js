@@ -37,10 +37,36 @@
     return sub ? sub.name : subId;
   }
 
+  function getMaterialPrices() {
+    const prices = {};
+    document.querySelectorAll('#materials-grid .material').forEach(el => {
+      const mat = el.dataset.material;
+      const price = parseFloat(el.dataset.price);
+      if (mat && !isNaN(price)) prices[mat] = price;
+    });
+    return prices;
+  }
+
+  function estimateCost(model) {
+    const prices = getMaterialPrices();
+    const mat = model.material || 'PLA';
+    const price = prices[mat] || 5;
+    if (model.weight == null) return null;
+    return Math.round(model.weight * price);
+  }
+
   function formatSpec(model) {
     const parts = [];
     if (model.weight != null) parts.push(`${model.weight} г`);
-    if (model.printTime != null) parts.push(`${model.printTime} ч`);
+    if (model.printTime != null) {
+      if (model.printTime > 60) {
+        parts.push(`${(model.printTime / 60).toFixed(1)} ч`);
+      } else {
+        parts.push(`${model.printTime} мин`);
+      }
+    }
+    const cost = estimateCost(model);
+    if (cost != null) parts.push(`~${cost} ₽`);
     if (!parts.length) return null;
     return parts.join(' · ');
   }

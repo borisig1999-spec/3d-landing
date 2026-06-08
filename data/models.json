@@ -1175,6 +1175,19 @@
       "url": "https://makerworld.com/ru/models/1087279-small-smartphone-stand-print-in-place-design",
       "tags": [],
       "featured": false
+    },
+    {
+      "id": "organayzer-dlya-paketov-so-spetsiyami-135-mm-bez",
+      "name": "Органайзер для пакетов со специями, 135 мм, без опор",
+      "category": "kitchen",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": 4,
+      "image": "images/organayzer-dlya-paketov-so-spetsiyami-135-mm-bez.webp",
+      "url": "https://makerworld.com/ru/models/2767974-spice-packet-organizer-135mm-no-supports",
+      "tags": [],
+      "featured": false
     }
   ]
 }
