@@ -1123,6 +1123,19 @@
       "url": "https://makerworld.com/ru/models/675876-argonath-bookkeeper-the-lord-of-the-rings#profileId-607167",
       "tags": [],
       "featured": false
+    },
+    {
+      "id": "futlyar-dlya-zubnoy-schetki",
+      "name": "Футляр для зубной щетки",
+      "category": "вода",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/futlyar-dlya-zubnoy-schetki.webp",
+      "url": "https://makerworld.com/ru/models/32077-toothbrush-travel-case#profileId-2377511",
+      "tags": [],
+      "featured": false
     }
   ]
 }
