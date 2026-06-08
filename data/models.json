@@ -1093,6 +1093,19 @@
       "url": "https://makerworld.com/ru/models/1148226-harry-potter-hogwarts-book-nook#profileId-1151983",
       "tags": [],
       "featured": false
+    },
+    {
+      "id": "yaschik-pod-stoleshnitsu",
+      "name": "Ящик под столешницу",
+      "category": "storage",
+      "subcategory": "стол",
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/yaschik-pod-stoleshnitsu.webp",
+      "url": "https://makerworld.com/ru/models/19433-under-desk-drawer",
+      "tags": [],
+      "featured": false
     }
   ]
 }

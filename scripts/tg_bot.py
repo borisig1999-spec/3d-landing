@@ -55,7 +55,9 @@ def translate_to_ru(text: str) -> str:
         return text
 
 # ---------- НАСТРОЙКИ ----------
-TOKEN = os.environ.get("TG_BOT_TOKEN", "8970161294:AAH7QNp4MUoE586DRTIbPKHVJPJLlqdICu0")
+TOKEN = os.environ.get("TG_BOT_TOKEN")
+if not TOKEN:
+    raise ValueError("TG_BOT_TOKEN не найден в переменных окружения. Проверь файл .env")
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATA_FILE = PROJECT_ROOT / "data" / "models.json"
 SCRIPT_ADD = PROJECT_ROOT / "scripts" / "add_model.py"

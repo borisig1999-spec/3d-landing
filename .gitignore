@@ -12,3 +12,6 @@ desktop.ini
 # Local temp
 _inbox/
 *.bak
+
+# Environment variables (secrets)
+.env
