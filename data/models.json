@@ -1046,6 +1046,19 @@
       "url": "https://makerworld.com/ru/models/1646203-cactus-headphone-stand#profileId-1739948",
       "tags": [],
       "featured": false
+    },
+    {
+      "id": "mundshtuk-80mm-dlya-sigarety",
+      "name": "Мундштук 80мм для сигареты",
+      "category": "tools",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/mundshtuk-80mm-dlya-sigarety.webp",
+      "url": "https://makerworld.com/ru/models/2386598-cigarette-holder#profileId-2613996",
+      "tags": [],
+      "featured": false
     }
   ]
 }

@@ -775,8 +775,13 @@ def main():
     app.add_handler(CallbackQueryHandler(name_selected, pattern=r"^name:"))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_url))
 
+    from httpx import Timeout
+
     logger.info("Бот запущен!")
-    app.run_polling(allowed_updates=Update.ALL_TYPES)
+    app.run_polling(
+        allowed_updates=Update.ALL_TYPES,
+        timeout=30,
+    )
 
 
 if __name__ == "__main__":
