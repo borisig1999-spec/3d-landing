@@ -1357,6 +1357,19 @@
       "url": "https://makerworld.com/ru/models/790509-shoewell-your-shoe-holder-inspired-by-ikea-murvel#profileId-728838",
       "tags": [],
       "featured": false
+    },
+    {
+      "id": "zakladka-krysa",
+      "name": "закладка крыса",
+      "category": "figures",
+      "subcategory": "other",
+      "material": "PLA",
+      "weight": null,
+      "printTime": 1,
+      "image": "images/zakladka-krysa.webp",
+      "url": "https://makerworld.com/ru/models/2807426-smooshed-rat-book-mark",
+      "tags": [],
+      "featured": false
     }
   ]
 }
