@@ -39,6 +39,10 @@
     {
       "id": "parts",
       "name": "Запчасти"
+    },
+    {
+      "id": "вода",
+      "name": "Вода"
     }
   ],
   "subcategories": {
