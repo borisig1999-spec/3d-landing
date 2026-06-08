@@ -1305,6 +1305,19 @@
       "url": "https://makerworld.com/ru/models/2773332-yoga-mat-holder-modular-customizable-wall-mount",
       "tags": [],
       "featured": false
+    },
+    {
+      "id": "derzhatel-dlya-solntsezaschitnyh-ochkov-v",
+      "name": "Держатель для солнцезащитных очков в автомобильном козырьке",
+      "category": "auto",
+      "subcategory": "car",
+      "material": "PLA",
+      "weight": null,
+      "printTime": 1,
+      "image": "images/derzhatel-dlya-solntsezaschitnyh-ochkov-v.webp",
+      "url": "https://makerworld.com/ru/models/2558189-car-visor-sunglasses-holder",
+      "tags": [],
+      "featured": false
     }
   ]
 }
