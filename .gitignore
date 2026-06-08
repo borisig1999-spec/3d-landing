@@ -15,3 +15,7 @@ _inbox/
 
 # Environment variables (secrets)
 .env
+
+# Python
+__pycache__/
+*.pyc
