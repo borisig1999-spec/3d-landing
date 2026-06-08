@@ -1240,6 +1240,19 @@
       "url": "https://makerworld.com/ru/models/2795821-fridge-bottle-holder",
       "tags": [],
       "featured": false
+    },
+    {
+      "id": "derzhatel-meshkov-dlya-musora",
+      "name": "Держатель мешков для мусора",
+      "category": "storage",
+      "subcategory": "custom",
+      "material": "PLA",
+      "weight": null,
+      "printTime": 1,
+      "image": "images/derzhatel-meshkov-dlya-musora.webp",
+      "url": "https://makerworld.com/ru/models/2777152-trash-bag-holder",
+      "tags": [],
+      "featured": false
     }
   ]
 }
