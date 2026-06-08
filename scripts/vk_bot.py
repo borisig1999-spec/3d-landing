@@ -785,6 +785,8 @@ def add_model(vk, event, state, final_name):
 
         keyboard = VkKeyboard(one_time=True)
         keyboard.add_callback_button("Пропустить", color=VkKeyboardColor.SECONDARY, payload={"type": "text", "text": "пропустить"})
+        keyboard.add_line()
+        keyboard.add_callback_button("Отмена", color=VkKeyboardColor.NEGATIVE, payload={"type": "text", "text": "отмена"})
 
         vk.messages.send(
             peer_id=event.obj.message["peer_id"],
@@ -1009,12 +1011,29 @@ def handle_weight_input(vk, event, text, state):
     user_id = event.obj.message["from_id"]
     peer_id = event.obj.message["peer_id"]
 
+    if text.lower() in ("отмена", "меню", "/start"):
+        clear_user_state(user_id)
+        vk.messages.send(
+            peer_id=peer_id,
+            message="Отменено. Что делаем?",
+            keyboard=get_main_menu_keyboard(),
+            random_id=event.obj.message["random_id"],
+        )
+        return
+
     if text.lower() in ("пропустить", "skip", "-", "дальше"):
         state["awaiting_weight"] = False
         state["awaiting_time"] = True
+
+        keyboard = VkKeyboard(one_time=True)
+        keyboard.add_callback_button("Пропустить", color=VkKeyboardColor.SECONDARY, payload={"type": "text", "text": "пропустить"})
+        keyboard.add_line()
+        keyboard.add_callback_button("Отмена", color=VkKeyboardColor.NEGATIVE, payload={"type": "text", "text": "отмена"})
+
         vk.messages.send(
             peer_id=peer_id,
-            message="Ок. Укажи примерное время печати в минутах (или «пропустить»):",
+            message="Ок. Укажи примерное время печати в минутах:",
+            keyboard=keyboard.get_keyboard(),
             random_id=event.obj.message["random_id"],
         )
         return
@@ -1035,6 +1054,8 @@ def handle_weight_input(vk, event, text, state):
 
     keyboard = VkKeyboard(one_time=True)
     keyboard.add_callback_button("Пропустить", color=VkKeyboardColor.SECONDARY, payload={"type": "text", "text": "пропустить"})
+    keyboard.add_line()
+    keyboard.add_callback_button("Отмена", color=VkKeyboardColor.NEGATIVE, payload={"type": "text", "text": "отмена"})
 
     vk.messages.send(
         peer_id=peer_id,
@@ -1048,6 +1069,16 @@ def handle_time_input(vk, event, text, state):
     """Обработка ввода времени печати."""
     user_id = event.obj.message["from_id"]
     peer_id = event.obj.message["peer_id"]
+
+    if text.lower() in ("отмена", "меню", "/start"):
+        clear_user_state(user_id)
+        vk.messages.send(
+            peer_id=peer_id,
+            message="Отменено. Что делаем?",
+            keyboard=get_main_menu_keyboard(),
+            random_id=event.obj.message["random_id"],
+        )
+        return
 
     print_time = None
     if text.lower() not in ("пропустить", "skip", "-", "дальше"):
