@@ -37,23 +37,10 @@
     return sub ? sub.name : subId;
   }
 
-  function getMaterialPrices() {
-    const prices = {};
-    document.querySelectorAll('#materials-grid .material').forEach(el => {
-      const mat = el.dataset.material;
-      const price = parseFloat(el.dataset.price);
-      if (mat && !isNaN(price)) prices[mat] = price;
-    });
-    return prices;
-  }
-
-  function estimateCost(model) {
-    const prices = getMaterialPrices();
-    const mat = model.material || 'PLA';
-    const price = prices[mat] || 5;
+  function formatSpec(model) {
     if (model.weight == null) return null;
-    const effectivePrice = model.weight < 10 ? 10 : price;
-    return Math.round(model.weight * effectivePrice);
+    const price = model.weight < 10 ? 10 : 5;
+    return Math.round(model.weight * price);
   }
 
   function formatSpec(model) {
