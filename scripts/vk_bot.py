@@ -756,6 +756,9 @@ def add_model(vk, event, state, final_name):
             random_id=event.obj.message["random_id"],
         )
         state["awaiting_weight"] = True
+        state["awaiting_name"] = False
+        state["awaiting_category"] = False
+        state["awaiting_subcategory"] = False
     else:
         vk.messages.send(
             peer_id=event.obj.message["peer_id"],
@@ -814,6 +817,7 @@ def handle_weight_input(vk, event, text, state):
     state["weight"] = weight
     state["awaiting_weight"] = False
     state["awaiting_time"] = True
+    state["awaiting_name"] = False
 
     vk.messages.send(
         peer_id=peer_id,
