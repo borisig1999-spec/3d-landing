@@ -1059,6 +1059,19 @@
       "url": "https://makerworld.com/ru/models/2386598-cigarette-holder#profileId-2613996",
       "tags": [],
       "featured": false
+    },
+    {
+      "id": "veyder-bukend",
+      "name": "Вейдер Букенд",
+      "category": "figures",
+      "subcategory": "star-wars",
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/veyder-bukend.webp",
+      "url": "https://makerworld.com/ru/models/2287605-vader-bookend",
+      "tags": [],
+      "featured": false
     }
   ]
 }
