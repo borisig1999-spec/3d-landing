@@ -1266,6 +1266,19 @@
       "url": "https://makerworld.com/ru/models/867109-kitchen-wall-mounted-trash-can#profileId-818420",
       "tags": [],
       "featured": false
+    },
+    {
+      "id": "kryshki-dlya-konserv",
+      "name": "Крышки для консерв",
+      "category": "kitchen",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": 1,
+      "image": "images/kryshki-dlya-konserv.webp",
+      "url": "https://makerworld.com/ru/models/1194509-food-can-cover",
+      "tags": [],
+      "featured": false
     }
   ]
 }
