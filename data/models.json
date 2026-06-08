@@ -1201,6 +1201,19 @@
       "url": "https://makerworld.com/ru/models/2711115-bag-clip#profileId-3002034",
       "tags": [],
       "featured": false
+    },
+    {
+      "id": "podstavka-dlya-folgi-i-plenki",
+      "name": "Подставка для фольги и пленки",
+      "category": "kitchen",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": 7,
+      "image": "images/podstavka-dlya-folgi-i-plenki.webp",
+      "url": "https://makerworld.com/ru/models/2762224-compact-multi-use-case",
+      "tags": [],
+      "featured": false
     }
   ]
 }
