@@ -1279,6 +1279,19 @@
       "url": "https://makerworld.com/ru/models/1194509-food-can-cover",
       "tags": [],
       "featured": false
+    },
+    {
+      "id": "veshalka-dlya-noskov-i-nizhnego-belya-v2",
+      "name": "Вешалка для носков и нижнего белья V2#Profileid 3114395",
+      "category": "home",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": 1,
+      "image": "images/veshalka-dlya-noskov-i-nizhnego-belya-v2.webp",
+      "url": "https://makerworld.com/ru/models/2799695-sock-and-underwear-hanger-v2#profileId-3114395",
+      "tags": [],
+      "featured": false
     }
   ]
 }
