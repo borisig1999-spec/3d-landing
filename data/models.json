@@ -1344,6 +1344,19 @@
       "url": "https://makerworld.com/ru/models/984298-modern-tea-organizer-tea-dispenser",
       "tags": [],
       "featured": false
+    },
+    {
+      "id": "podstavka-dlya-obuvi",
+      "name": "Подставка для обуви",
+      "category": "storage",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/podstavka-dlya-obuvi.webp",
+      "url": "https://makerworld.com/ru/models/790509-shoewell-your-shoe-holder-inspired-by-ikea-murvel#profileId-728838",
+      "tags": [],
+      "featured": false
     }
   ]
 }
