@@ -1,9 +1,14 @@
 @echo off
-taskkill /F /IM python.exe /T >nul 2>&1
-timeout /t 2 /nobreak >nul
-cd /d M:\Sait\3d-landing
-start /min python scripts\tg_bot.py
-timeout /t 2 /nobreak >nul
-start /min python scripts\vk_bot.py
-echo Оба бота перезапущены!
-timeout /t 3 /nobreak >nul
+echo Перезапуск обоих ботов...
+
+taskkill /F /IM pythonw.exe /T >nul 2>&1
+ping 127.0.0.1 -n 3 >nul
+
+echo Запуск VK бота...
+start "" /min "C:\Program Files\Python311\pythonw.exe" M:\Sait\3d-landing\scripts\vk_bot.py
+
+echo Запуск Telegram бота...
+start "" /min "C:\Program Files\Python311\pythonw.exe" M:\Sait\3d-landing\scripts\tg_bot.py
+
+echo Готово!
+ping 127.0.0.1 -n 5 >nul
