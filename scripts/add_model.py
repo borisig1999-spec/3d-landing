@@ -393,8 +393,42 @@ def fetch_page(url: str, project_root: Path) -> dict:
                     if any(x in src.lower() for x in ['cover', 'preview', 'main', 'hero', 'design']):
                         result['image'] = src
                         break
+                if not result.get('image'):
+                    for img_el in imgs:
+                        src = img_el.get_attribute('src') or ''
+                        if not src or src.startswith('data:'):
+                            continue
+                        if 'makerworld.com' in src and any(x in src.lower() for x in ['.jpg', '.png', '.webp']):
+                            result['image'] = src
+                            break
             except Exception:
                 pass
+
+        # Последний шанс — ищем в JSON ответах cover image
+        if not result.get('image'):
+            for resp in captured_responses:
+                try:
+                    data = resp['json']
+                    candidates = [data.get('data', {}), data.get('design', {}), data]
+                    for c in candidates:
+                        if not isinstance(c, dict):
+                            continue
+                        for key in ['cover', 'cover_image', 'cover_image_url', 'image', 'image_url', 'preview']:
+                            img = c.get(key)
+                            if isinstance(img, str) and img.startswith('http'):
+                                result['image'] = img
+                                break
+                            elif isinstance(img, dict):
+                                url = img.get('url') or img.get('original')
+                                if url and isinstance(url, str) and url.startswith('http'):
+                                    result['image'] = url
+                                    break
+                        if result.get('image'):
+                            break
+                    if result.get('image'):
+                        break
+                except Exception:
+                    pass
 
         browser.close()
 
