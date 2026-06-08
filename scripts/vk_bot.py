@@ -69,6 +69,16 @@ def is_model_url(text: str) -> bool:
     return any(re.search(p, text) for p in patterns)
 
 
+def sanitize_name(name: str) -> str:
+    """Очищает название модели от HTML-тегов и ограничивает длину."""
+    name = re.sub(r'<[^>]+>', '', name)
+    name = name.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+    name = name.strip()
+    if len(name) > 100:
+        name = name[:100]
+    return name if name else "модель"
+
+
 def translate_to_ru(text: str) -> str:
     """Переводит текст с английского на русский."""
     try:
@@ -115,7 +125,7 @@ def git_commit_and_push(message: str) -> dict:
         return {"success": True, "log": "Нет изменений для коммита"}
 
     commands = [
-        ["git", "add", "-A"],
+        ["git", "add", "data/models.json", "images/"],
         ["git", "commit", "-m", message],
         ["git", "push"],
     ]
@@ -201,9 +211,11 @@ def get_name_keyboard(original_name, translated_name):
 # ---------- Дедупликация ----------
 processed_messages = set()
 callback_seen = {}  # {(user_id, text): timestamp} — чтобы не дублировать MESSAGE_NEW после callback
+add_timestamps = {}  # {user_id: [timestamp, ...]} — rate limiting добавлений моделей
 
 # ---------- Состояния пользователей ----------
-ALLOWED_USERS = {362356023}
+_allowed_raw = os.environ.get("VK_ALLOWED_USERS", "362356023")
+ALLOWED_USERS = {int(uid.strip()) for uid in _allowed_raw.split(",") if uid.strip()}
 
 user_states = {}
 
@@ -218,6 +230,18 @@ def get_user_state(user_id):
 def clear_user_state(user_id):
     """Очищает состояние пользователя."""
     user_states.pop(user_id, None)
+
+
+def check_rate_limit(user_id, max_per_hour=10):
+    """Проверяет, не превышен ли лимит добавлений моделей (макс N в час). Возвращает True если OK."""
+    now = time.time()
+    if user_id not in add_timestamps:
+        add_timestamps[user_id] = []
+    add_timestamps[user_id] = [t for t in add_timestamps[user_id] if now - t < 3600]
+    if len(add_timestamps[user_id]) >= max_per_hour:
+        return False
+    add_timestamps[user_id].append(now)
+    return True
 
 
 # ---------- Обработчики ----------
@@ -785,6 +809,16 @@ def add_model(vk, event, state, final_name):
     cat_id = state["cat_id"]
     cat_name = state["cat_name"]
     sub_id = state.get("sub_id")
+    final_name = sanitize_name(final_name)
+
+    if not check_rate_limit(user_id):
+        vk.messages.send(
+            peer_id=event.obj.message["peer_id"],
+            message="Слишком много добавлений. Подожди час и попробуй снова.",
+            random_id=event.obj.message["random_id"],
+        )
+        clear_user_state(user_id)
+        return
 
     vk.messages.send(
         peer_id=event.obj.message["peer_id"],
@@ -804,12 +838,12 @@ def add_model(vk, event, state, final_name):
         return
 
     if result["returncode"] != 0:
-        error = result["stderr"].strip() or result["stdout"].strip()
         vk.messages.send(
             peer_id=event.obj.message["peer_id"],
-            message=f"Ошибка при добавлении:\n{error[:500]}",
+            message="Ошибка при добавлении модели. Попробуй позже или напиши /start заново.",
             random_id=event.obj.message["random_id"],
         )
+        logger.error(f"add_model failed: {result['stderr'][:300]}")
         clear_user_state(user_id)
         return
 
@@ -850,9 +884,10 @@ def add_model(vk, event, state, final_name):
     else:
         vk.messages.send(
             peer_id=event.obj.message["peer_id"],
-            message=f"Модель добавлена, но пуш не удался:\n{git_result['log'][:500]}",
+            message="Модель добавлена, но не удалось запушить на сайт. Попробуй позже.",
             random_id=event.obj.message["random_id"],
         )
+        logger.error(f"git push failed: {git_result['log'][:300]}")
         clear_user_state(user_id)
 
 
@@ -1017,7 +1052,7 @@ def handle_edit_value(vk, event, text, state):
                 elif field == "printTime":
                     m["printTime"] = float(text.replace(",", "."))
                 elif field == "name":
-                    m["name"] = text.strip()
+                    m["name"] = sanitize_name(text)
                 elif field == "category":
                     if text.startswith("cat:"):
                         new_cat = text.split(":")[1]

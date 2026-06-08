@@ -71,9 +71,57 @@
   }
 
   function highlightText(text, query) {
-    if (!query) return text;
     const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     return text.replace(new RegExp(`(${escaped})`, 'gi'), '<mark>$1</mark>');
+  }
+
+  function escapeHTML(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  // -------- RENDER --------
+  function cardHTML(model, opts) {
+    opts = opts || {};
+    const showSource = opts.showSource !== false;
+    const sourceURL = escapeHTML(model.url || '#');
+    const spec = formatSpec(model);
+    const searchLower = filterState.search.toLowerCase();
+    const nameMatchesSearch = searchLower && model.name.toLowerCase().includes(searchLower);
+    const nameHTML = nameMatchesSearch ? highlightText(escapeHTML(model.name), filterState.search) : escapeHTML(model.name);
+
+    const tagsHTML = [
+      `<span class="chip">${escapeHTML(getCategoryName(model.category))}</span>`,
+      `<span class="chip chip-material">${escapeHTML(model.material)}</span>`
+    ].join('');
+
+    let subTag = '';
+    if (model.subcategory) {
+      subTag = `<span class="chip chip-sub">${escapeHTML(getSubcategoryName(model.category, model.subcategory))}</span>`;
+    }
+
+    let specHTML = '';
+    if (spec) {
+      specHTML = `<div class="work-spec">${spec}</div>`;
+    }
+
+    let linkAttrs = `class="work-card" target="_blank" rel="noopener"`;
+    if (!model.url) {
+      linkAttrs = `class="work-card work-card-no-link"`;
+    }
+
+    return `
+      <a ${linkAttrs} href="${sourceURL}">
+        <div class="work-img">
+          <img src="${escapeHTML(model.image)}" alt="${escapeHTML(model.name)}" loading="lazy" onerror="this.classList.add('img-error')">
+        </div>
+        <div class="work-info">
+          <div class="work-tags">${tagsHTML}${subTag}</div>
+          <h3>${nameHTML}</h3>
+          ${specHTML}
+        </div>
+      </a>
+    `;
   }
 
   // -------- RENDER --------
