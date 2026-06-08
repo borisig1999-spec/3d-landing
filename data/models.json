@@ -1162,6 +1162,19 @@
       "url": "https://makerworld.com/ru/models/2421936-led-kit-001-hydrosquare-rain-planter#profileId-2675183",
       "tags": [],
       "featured": false
+    },
+    {
+      "id": "kompaktnaya-podstavka-dlya-smartfona",
+      "name": "Компактная подставка для смартфона",
+      "category": "tools",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/kompaktnaya-podstavka-dlya-smartfona.webp",
+      "url": "https://makerworld.com/ru/models/1087279-small-smartphone-stand-print-in-place-design",
+      "tags": [],
+      "featured": false
     }
   ]
 }
