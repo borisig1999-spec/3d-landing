@@ -148,13 +148,15 @@ def create_keyboard(buttons, one_time=True):
     return keyboard.get_keyboard()
 
 
-def get_category_keyboard():
-    """Клавиатура категорий."""
+def get_category_keyboard(highlight_cat=None):
+    """Клавиатура категорий. highlight_cat — id категории для подсветки."""
     categories = load_categories()
     keyboard = VkKeyboard(one_time=True)
     row = []
     for cat_id, cat_name in categories.items():
-        row.append((cat_name, VkKeyboardColor.PRIMARY, f"cat:{cat_id}"))
+        color = VkKeyboardColor.POSITIVE if cat_id == highlight_cat else VkKeyboardColor.PRIMARY
+        label = f"👉 {cat_name}" if cat_id == highlight_cat else cat_name
+        row.append((label, color, f"cat:{cat_id}"))
         if len(row) == 2:
             keyboard.add_callback_button(row[0][0], color=row[0][1], payload={"type": "text", "text": row[0][2]})
             keyboard.add_callback_button(row[1][0], color=row[1][1], payload={"type": "text", "text": row[1][2]})
@@ -183,22 +185,29 @@ def get_subcategory_keyboard(cat_id):
         keyboard.add_callback_button(row[0][0], color=row[0][1], payload={"type": "text", "text": row[0][2]})
         keyboard.add_line()
     keyboard.add_callback_button("➕ Новая подкатегория", color=VkKeyboardColor.SECONDARY, payload={"type": "text", "text": "sub:new"})
-    keyboard.add_callback_button("⏭ Без подкатегории", color=VkKeyboardColor.SECONDARY, payload={"type": "text", "text": "sub:none"})
+    keyboard.add_callback_button("Без подкатегории", color=VkKeyboardColor.SECONDARY, payload={"type": "text", "text": "sub:none"})
     return keyboard.get_keyboard()
 
 
 def get_name_keyboard(original_name, translated_name):
     """Клавиатура выбора названия."""
     keyboard = VkKeyboard(one_time=True)
-    keyboard.add_callback_button(f"✅ {translated_name}", color=VkKeyboardColor.POSITIVE, payload={"type": "text", "text": "name:translated"})
+    t_label = f"✅ {translated_name}"[:40]
+    o_label = f"Оригинал: {original_name}"[:40]
+    keyboard.add_callback_button(t_label, color=VkKeyboardColor.POSITIVE, payload={"type": "text", "text": "name:translated"})
     keyboard.add_line()
-    keyboard.add_callback_button(f"Оригинал: {original_name}", color=VkKeyboardColor.PRIMARY, payload={"type": "text", "text": "name:original"})
+    keyboard.add_callback_button(o_label, color=VkKeyboardColor.PRIMARY, payload={"type": "text", "text": "name:original"})
     keyboard.add_line()
-    keyboard.add_callback_button("✏️ Написать своё", color=VkKeyboardColor.SECONDARY, payload={"type": "text", "text": "name:custom"})
+    keyboard.add_callback_button("Написать своё", color=VkKeyboardColor.SECONDARY, payload={"type": "text", "text": "name:custom"})
     return keyboard.get_keyboard()
 
 
+# ---------- Дедупликация ----------
+processed_messages = set()
+
 # ---------- Состояния пользователей ----------
+ALLOWED_USERS = {362356023}
+
 user_states = {}
 
 
@@ -218,7 +227,7 @@ def clear_user_state(user_id):
 def handle_start(vk, event):
     """Приветствие."""
     vk.messages.send(
-        user_id=event.obj.message["from_id"],
+        peer_id=event.obj.message["peer_id"],
         message=(
             "Привет! Я бот для добавления 3D-моделей на сайт.\n\n"
             "Просто отправь ссылку с MakerWorld, Thingiverse или Printables — "
@@ -234,7 +243,7 @@ def handle_start(vk, event):
 def handle_help(vk, event):
     """Справка."""
     vk.messages.send(
-        user_id=event.obj.message["from_id"],
+        peer_id=event.obj.message["peer_id"],
         message=(
             "Как пользоваться:\n\n"
             "1. Отправь ссылку на модель:\n"
@@ -263,13 +272,13 @@ def handle_list(vk, event):
             text += f"{i}. {m['name']}\n   Категория: {cat}\n   {m.get('url', '')}\n\n"
 
         vk.messages.send(
-            user_id=event.obj.message["from_id"],
+            peer_id=event.obj.message["peer_id"],
             message=text,
             random_id=event.obj.message["random_id"],
         )
     except Exception as e:
         vk.messages.send(
-            user_id=event.obj.message["from_id"],
+            peer_id=event.obj.message["peer_id"],
             message=f"Ошибка: {e}",
             random_id=event.obj.message["random_id"],
         )
@@ -278,6 +287,15 @@ def handle_list(vk, event):
 def handle_message(vk, event):
     """Обработка сообщений."""
     user_id = event.obj.message["from_id"]
+
+    if user_id not in ALLOWED_USERS:
+        vk.messages.send(
+            peer_id=event.obj.message["peer_id"],
+            message="У тебя нет доступа к этому боту.",
+            random_id=event.obj.message["random_id"],
+        )
+        return
+
     text = event.obj.message.get("text", "").strip()
     state = get_user_state(user_id)
 
@@ -322,9 +340,9 @@ def handle_message(vk, event):
             msg = f"💡 Предлагаю: «{cat_name}»\n\nПолучил ссылку! Выбери категорию:"
 
         vk.messages.send(
-            user_id=user_id,
+            peer_id=event.obj.message["peer_id"],
             message=msg,
-            keyboard=get_category_keyboard(),
+            keyboard=get_category_keyboard(highlight_cat=suggested_cat),
             random_id=event.obj.message["random_id"],
         )
         return
@@ -346,7 +364,7 @@ def handle_message(vk, event):
 
     # Если не распознали
     vk.messages.send(
-        user_id=user_id,
+        peer_id=event.obj.message["peer_id"],
         message="Отправь ссылку на модель с MakerWorld, Thingiverse или Printables.",
         random_id=event.obj.message["random_id"],
     )
@@ -356,16 +374,16 @@ def guess_category_from_url(url: str) -> str:
     """Пытается угадать категорию по URL модели."""
     url_lower = url.lower()
     keywords = {
-        "home": ["home", "house", "decor", "interior", "planter", "vase", "lamp", "light", "holder", "hook", "shelf", "box", "container", "storage"],
-        "kitchen": ["kitchen", "mug", "cup", "plate", "spoon", "fork", "knife", "organizer", "rack"],
-        "figures": ["figure", "statue", "figurine", "character", "robot", "dragon", "warrior", "batman", "star-wars", "marvel", "lotr", "gollum", "gate", "minas"],
-        "games": ["game", "chess", "dice", "token", "miniature", "dnd", "warhammer", "puzzle"],
-        "tools": ["tool", "wrench", "holder", "clip", "mount", "bracket", "adapter", "gadget"],
-        "auto": ["car", "auto", "vehicle", "bike", "motorcycle", "phone-holder", "charger", "cable"],
-        "lighting": ["lamp", "light", "led", "chandelier", "sconce", "lantern"],
-        "storage": ["storage", "organizer", "drawer", "shelf", "rack", "stand", "case"],
-        "wardrobe": ["hanger", "hook", "closet", "wardrobe", "shoe", "belt"],
-        "parts": ["part", "gear", "bearing", "bushing", "connector", "screw", "bolt", "nut"],
+        "home": ["home", "house", "decor", "interior", "planter", "vase", "lamp", "light", "holder", "hook", "shelf", "box", "container", "storage", "rope", "kashpo"],
+        "kitchen": ["kitchen", "mug", "cup", "plate", "spoon", "fork", "knife", "organizer", "rack", "tea", "coffee"],
+        "figures": ["figure", "statue", "figurine", "character", "robot", "dragon", "warrior", "batman", "star-wars", "marvel", "lotr", "gollum", "gate", "minas", "lord", "rings", "hobbit", "gandalf", "frodo", "aragorn", "elf", "orc", "sauron", "middle-earth", "shire", "argonath", "funko", "pop", "anime", "manga", "pokemon", "mario", "zelda", "link", "hero", "villain", "monster", "creature", "dinosaur", "t-rex", "skeleton", "skull", "face", "head", "body", "animal", "cat", "dog", "bear", "lion", "wolf", "bird", "fish", "insect", "spider", "bug", "bat", "frog", "turtle", "rabbit", "fox", "deer", "horse", "cow", "pig", "sheep", "goat", "chicken", "duck", "swan", "eagle", "owl", "penguin", "whale", "dolphin", "shark", "octopus", "crab", "lobster", "snail", "butterfly", "bee", "ant", "ladybug", "caterpillar", "worm", "snake", "lizard", "turtle", "frog", "toad", "newt", "salamander", "gecko", "chameleon", "iguana", "crocodile", "alligator", "hippo", "rhino", "elephant", "giraffe", "zebra", "monkey", "ape", "gorilla", "chimpanzee", "orangutan", "panda", "koala", "sloth", "raccoon", "hamster", "guinea-pig", "mouse", "rat", "squirrel", "hedgehog", "mole", "bat", "hedgehog"],
+        "games": ["game", "chess", "dice", "token", "miniature", "dnd", "warhammer", "puzzle", "csgo", "fortnite", "minecraft", "Among", "Us"],
+        "tools": ["tool", "wrench", "holder", "clip", "mount", "bracket", "adapter", "gadget", "keycap", "keychain"],
+        "auto": ["car", "auto", "vehicle", "bike", "motorcycle", "phone-holder", "charger", "cable", "tesla", "wheel", "tire"],
+        "lighting": ["lamp", "light", "led", "chandelier", "sconce", "lantern", "neon"],
+        "storage": ["storage", "organizer", "drawer", "shelf", "rack", "stand", "case", "box", "basket"],
+        "wardrobe": ["hanger", "hook", "closet", "wardrobe", "shoe", "belt", "coat", "jacket"],
+        "parts": ["part", "gear", "bearing", "bushing", "connector", "screw", "bolt", "nut", "spring", "washer"],
     }
     for cat_id, words in keywords.items():
         for word in words:
@@ -388,7 +406,7 @@ def handle_category_selection(vk, event, text, state):
     if cat_id == "new":
         state["awaiting_new_cat"] = True
         vk.messages.send(
-            user_id=user_id,
+            peer_id=event.obj.message["peer_id"],
             message="Отправь название новой категории на русском.\nНапример: «Одежда» или «Автозапчасти»",
             random_id=event.obj.message["random_id"],
         )
@@ -396,7 +414,7 @@ def handle_category_selection(vk, event, text, state):
 
     if cat_id not in categories:
         vk.messages.send(
-            user_id=user_id,
+            peer_id=event.obj.message["peer_id"],
             message="Такой категории нет. Выбери из списка или создай новую.",
             keyboard=get_category_keyboard(),
             random_id=event.obj.message["random_id"],
@@ -409,7 +427,7 @@ def handle_category_selection(vk, event, text, state):
     state["awaiting_subcategory"] = True
 
     vk.messages.send(
-        user_id=user_id,
+        peer_id=event.obj.message["peer_id"],
         message=f"Категория: «{categories[cat_id]}»\n\nВыбери подкатегорию:",
         keyboard=get_subcategory_keyboard(cat_id),
         random_id=event.obj.message["random_id"],
@@ -428,7 +446,7 @@ def handle_subcategory_selection(vk, event, text, state):
     if sub_id == "new":
         state["awaiting_new_sub"] = True
         vk.messages.send(
-            user_id=user_id,
+            peer_id=event.obj.message["peer_id"],
             message="Отправь название новой подкатегории на русском.\nНапример: «Star Wars» или «Миньоны»",
             random_id=event.obj.message["random_id"],
         )
@@ -444,7 +462,7 @@ def handle_subcategory_selection(vk, event, text, state):
             state["sub_name"] = subcategories[sub_id]
         else:
             vk.messages.send(
-                user_id=user_id,
+                peer_id=event.obj.message["peer_id"],
                 message="Такой подкатегории нет. Выбери из списка или создай новую.",
                 keyboard=get_subcategory_keyboard(state["cat_id"]),
                 random_id=event.obj.message["random_id"],
@@ -474,7 +492,7 @@ def handle_subcategory_selection(vk, event, text, state):
         category_text += f" → «{state['sub_name']}»"
 
     vk.messages.send(
-        user_id=user_id,
+        peer_id=event.obj.message["peer_id"],
         message=(
             f"{category_text}\n\n"
             f"Оригинал: {original_name}\n"
@@ -502,7 +520,7 @@ def handle_name_selection(vk, event, text, state):
     elif choice == "custom":
         state["awaiting_custom_name"] = True
         vk.messages.send(
-            user_id=user_id,
+            peer_id=event.obj.message["peer_id"],
             message="Отправь название модели на русском:",
             random_id=event.obj.message["random_id"],
         )
@@ -522,7 +540,7 @@ def handle_new_category(vk, event, text, state):
 
     if not cat_id:
         vk.messages.send(
-            user_id=user_id,
+            peer_id=event.obj.message["peer_id"],
             message="Некорректное название. Попробуй ещё раз.",
             random_id=event.obj.message["random_id"],
         )
@@ -535,7 +553,7 @@ def handle_new_category(vk, event, text, state):
         for c in data.get("categories", []):
             if c["id"] == cat_id:
                 vk.messages.send(
-                    user_id=user_id,
+                    peer_id=event.obj.message["peer_id"],
                     message="Такая категория уже существует.",
                     random_id=event.obj.message["random_id"],
                 )
@@ -545,7 +563,7 @@ def handle_new_category(vk, event, text, state):
             json.dump(data, f, ensure_ascii=False, indent=2)
     except Exception as e:
         vk.messages.send(
-            user_id=user_id,
+            peer_id=event.obj.message["peer_id"],
             message=f"Ошибка: {e}",
             random_id=event.obj.message["random_id"],
         )
@@ -559,7 +577,7 @@ def handle_new_category(vk, event, text, state):
     state["awaiting_subcategory"] = True
 
     vk.messages.send(
-        user_id=user_id,
+        peer_id=event.obj.message["peer_id"],
         message=f"✅ Категория «{cat_name}» создана!\n\nВыбери подкатегорию:",
         keyboard=get_subcategory_keyboard(cat_id),
         random_id=event.obj.message["random_id"],
@@ -575,7 +593,7 @@ def handle_new_subcategory(vk, event, text, state):
 
     if not sub_id:
         vk.messages.send(
-            user_id=user_id,
+            peer_id=event.obj.message["peer_id"],
             message="Некорректное название. Попробуй ещё раз.",
             random_id=event.obj.message["random_id"],
         )
@@ -593,7 +611,7 @@ def handle_new_subcategory(vk, event, text, state):
         for s in data["subcategories"][cat_id]:
             if s["id"] == sub_id:
                 vk.messages.send(
-                    user_id=user_id,
+                    peer_id=event.obj.message["peer_id"],
                     message="Такая подкатегория уже существует.",
                     random_id=event.obj.message["random_id"],
                 )
@@ -603,7 +621,7 @@ def handle_new_subcategory(vk, event, text, state):
             json.dump(data, f, ensure_ascii=False, indent=2)
     except Exception as e:
         vk.messages.send(
-            user_id=user_id,
+            peer_id=event.obj.message["peer_id"],
             message=f"Ошибка: {e}",
             random_id=event.obj.message["random_id"],
         )
@@ -634,7 +652,7 @@ def handle_new_subcategory(vk, event, text, state):
     category_text = f"Категория: «{state['cat_name']}» → «{sub_name}»"
 
     vk.messages.send(
-        user_id=user_id,
+        peer_id=event.obj.message["peer_id"],
         message=(
             f"{category_text}\n\n"
             f"Оригинал: {original_name}\n"
@@ -661,7 +679,7 @@ def add_model(vk, event, state, final_name):
     sub_id = state.get("sub_id")
 
     vk.messages.send(
-        user_id=user_id,
+        peer_id=event.obj.message["peer_id"],
         message=f"Добавляю «{final_name}» в категорию «{cat_name}»...",
         random_id=event.obj.message["random_id"],
     )
@@ -670,7 +688,7 @@ def add_model(vk, event, state, final_name):
         result = run_add_model(url, cat=cat_id, sub=sub_id, name=final_name)
     except Exception as e:
         vk.messages.send(
-            user_id=user_id,
+            peer_id=event.obj.message["peer_id"],
             message=f"Ошибка: {e}",
             random_id=event.obj.message["random_id"],
         )
@@ -680,7 +698,7 @@ def add_model(vk, event, state, final_name):
     if result["returncode"] != 0:
         error = result["stderr"].strip() or result["stdout"].strip()
         vk.messages.send(
-            user_id=user_id,
+            peer_id=event.obj.message["peer_id"],
             message=f"Ошибка при добавлении:\n{error[:500]}",
             random_id=event.obj.message["random_id"],
         )
@@ -688,7 +706,7 @@ def add_model(vk, event, state, final_name):
         return
 
     vk.messages.send(
-        user_id=user_id,
+        peer_id=event.obj.message["peer_id"],
         message=f"✅ «{final_name}» добавлена! Пушу на сайт...",
         random_id=event.obj.message["random_id"],
     )
@@ -697,7 +715,7 @@ def add_model(vk, event, state, final_name):
 
     if git_result["success"]:
         vk.messages.send(
-            user_id=user_id,
+            peer_id=event.obj.message["peer_id"],
             message=(
                 f"🎉 Готово!\n\n"
                 f"Модель: {final_name}\n"
@@ -708,7 +726,7 @@ def add_model(vk, event, state, final_name):
         )
     else:
         vk.messages.send(
-            user_id=user_id,
+            peer_id=event.obj.message["peer_id"],
             message=f"Модель добавлена, но пуш не удался:\n{git_result['log'][:500]}",
             random_id=event.obj.message["random_id"],
         )
@@ -728,7 +746,45 @@ def main():
 
     for event in longpoll.listen():
         if event.type == VkBotEventType.MESSAGE_NEW:
+            msg_id = event.obj.message.get("id")
+            if msg_id in processed_messages:
+                continue
+            processed_messages.add(msg_id)
+            if len(processed_messages) > 1000:
+                processed_messages.clear()
             handle_message(vk, event)
+        elif event.type == VkBotEventType.MESSAGE_EVENT:
+            try:
+                vk.messages.sendMessageEventAnswer(
+                    event_id=event.obj.event_id,
+                    user_id=event.obj.user_id,
+                    peer_id=event.obj.peer_id,
+                    event_data='{"type":"show_snackbar","text":"Обрабатываю..."}'
+                )
+            except Exception:
+                pass
+            payload = event.obj.payload if hasattr(event.obj, 'payload') else {}
+            if isinstance(payload, dict):
+                text = payload.get("text", "")
+            else:
+                text = ""
+            if text:
+                class DictObj:
+                    def __init__(self, d):
+                        self._d = d
+                    def __getitem__(self, k):
+                        return self._d[k]
+                    def get(self, k, default=None):
+                        return self._d.get(k, default)
+                fake_msg = DictObj({
+                    "from_id": event.obj.user_id,
+                    "peer_id": event.obj.peer_id,
+                    "id": 0,
+                    "text": text,
+                    "random_id": 0,
+                })
+                event.obj.message = fake_msg
+                handle_message(vk, event)
 
 
 if __name__ == "__main__":

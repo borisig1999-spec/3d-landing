@@ -1106,6 +1106,19 @@
       "url": "https://makerworld.com/ru/models/19433-under-desk-drawer",
       "tags": [],
       "featured": false
+    },
+    {
+      "id": "vrata-argonata-stolpy-koroley",
+      "name": "Врата Аргоната, Столпы Королей",
+      "category": "figures",
+      "subcategory": "lotr",
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/vrata-argonata-stolpy-koroley.webp",
+      "url": "https://makerworld.com/ru/models/675876-argonath-bookkeeper-the-lord-of-the-rings#profileId-607167",
+      "tags": [],
+      "featured": false
     }
   ]
 }
