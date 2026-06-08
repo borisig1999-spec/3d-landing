@@ -56,7 +56,13 @@
 
   function formatSpec(model) {
     const parts = [];
-    if (model.weight != null) parts.push(`${model.weight} г`);
+    if (model.weight != null) {
+      if (model.weight < 1) {
+        parts.push(`${Math.round(model.weight * 1000)} мг`);
+      } else {
+        parts.push(`${model.weight} г`);
+      }
+    }
     if (model.printTime != null) {
       if (model.printTime > 60) {
         parts.push(`${(model.printTime / 60).toFixed(1)} ч`);
@@ -114,50 +120,6 @@
       <a ${linkAttrs} href="${sourceURL}">
         <div class="work-img">
           <img src="${escapeHTML(model.image)}" alt="${escapeHTML(model.name)}" loading="lazy" onerror="this.classList.add('img-error')">
-        </div>
-        <div class="work-info">
-          <div class="work-tags">${tagsHTML}${subTag}</div>
-          <h3>${nameHTML}</h3>
-          ${specHTML}
-        </div>
-      </a>
-    `;
-  }
-
-  // -------- RENDER --------
-  function cardHTML(model, opts) {
-    opts = opts || {};
-    const showSource = opts.showSource !== false;
-    const sourceURL = model.url || '#';
-    const spec = formatSpec(model);
-    const searchLower = filterState.search.toLowerCase();
-    const nameMatchesSearch = searchLower && model.name.toLowerCase().includes(searchLower);
-    const nameHTML = nameMatchesSearch ? highlightText(model.name, filterState.search) : model.name;
-
-    const tagsHTML = [
-      `<span class="chip">${getCategoryName(model.category)}</span>`,
-      `<span class="chip chip-material">${model.material}</span>`
-    ].join('');
-
-    let subTag = '';
-    if (model.subcategory) {
-      subTag = `<span class="chip chip-sub">${getSubcategoryName(model.category, model.subcategory)}</span>`;
-    }
-
-    let specHTML = '';
-    if (spec) {
-      specHTML = `<div class="work-spec">${spec}</div>`;
-    }
-
-    let linkAttrs = `class="work-card" target="_blank" rel="noopener"`;
-    if (!model.url) {
-      linkAttrs = `class="work-card work-card-no-link"`;
-    }
-
-    return `
-      <a ${linkAttrs} href="${sourceURL}">
-        <div class="work-img">
-          <img src="${model.image}" alt="${model.name}" loading="lazy" onerror="this.classList.add('img-error')">
         </div>
         <div class="work-info">
           <div class="work-tags">${tagsHTML}${subTag}</div>
@@ -246,6 +208,28 @@
     return sorted;
   }
 
+  // -------- SKELETON --------
+  function skeletonHTML(count) {
+    let html = '';
+    for (let i = 0; i < count; i++) {
+      html += `
+        <div class="skeleton-card">
+          <div class="skeleton-img"></div>
+          <div class="skeleton-text">
+            <div class="skeleton-line"></div>
+            <div class="skeleton-line"></div>
+          </div>
+        </div>`;
+    }
+    return html;
+  }
+
+  // -------- LAZY LOADING --------
+  const LAZY_BATCH = 12;
+  let lazyIndex = 0;
+  let lazyFiltered = [];
+  let lazyObserver = null;
+
   function renderResults() {
     const filtered = sortModels(getFilteredModels());
     els.resultsCount.textContent = filtered.length === 1
@@ -258,7 +242,42 @@
       return;
     }
     els.catalogEmpty.hidden = true;
-    els.catalogGrid.innerHTML = filtered.map(m => cardHTML(m)).join('');
+    lazyFiltered = filtered;
+    lazyIndex = 0;
+    els.catalogGrid.innerHTML = skeletonHTML(Math.min(LAZY_BATCH, filtered.length));
+    _loadNextBatch();
+    _setupLazyObserver();
+  }
+
+  function _loadNextBatch() {
+    if (lazyIndex >= lazyFiltered.length) return;
+    const end = Math.min(lazyIndex + LAZY_BATCH, lazyFiltered.length);
+    const batch = lazyFiltered.slice(lazyIndex, end);
+    const html = batch.map(m => cardHTML(m)).join('');
+
+    if (lazyIndex === 0) {
+      els.catalogGrid.innerHTML = html;
+    } else {
+      els.catalogGrid.insertAdjacentHTML('beforeend', html);
+    }
+    lazyIndex = end;
+  }
+
+  function _setupLazyObserver() {
+    if (lazyObserver) lazyObserver.disconnect();
+    if (!('IntersectionObserver' in window)) return;
+
+    const sentinel = document.createElement('div');
+    sentinel.id = 'lazySentinel';
+    sentinel.style.height = '1px';
+    els.catalogGrid.parentElement.appendChild(sentinel);
+
+    lazyObserver = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && lazyIndex < lazyFiltered.length) {
+        _loadNextBatch();
+      }
+    }, { rootMargin: '200px' });
+    lazyObserver.observe(sentinel);
   }
 
   function pluralModels(n) {
@@ -371,25 +390,59 @@
     }
   }
 
+  // -------- OFFLINE --------
+  function showOfflineBanner() {
+    let banner = document.getElementById('offlineBanner');
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'offlineBanner';
+      banner.className = 'offline-banner';
+      banner.textContent = 'Вы офлайн — показываю кэшированные данные';
+      document.body.prepend(banner);
+    }
+    banner.classList.add('visible');
+  }
+
+  function hideOfflineBanner() {
+    const banner = document.getElementById('offlineBanner');
+    if (banner) banner.classList.remove('visible');
+  }
+
   // -------- INIT --------
   async function init() {
     try {
       const res = await fetch('data/models.json', { cache: 'no-store' });
       if (!res.ok) throw new Error('HTTP ' + res.status);
-      // Защита от UTF-8 BOM: некоторые серверы присылают application/json
-      // без charset, и BOM ломает парсинг. Читаем как текст и срезаем.
       const text = await res.text();
       const clean = text.charCodeAt(0) === 0xFEFF ? text.slice(1) : text;
       data = JSON.parse(clean);
+      hideOfflineBanner();
+      // Cache for offline
+      try { localStorage.setItem('models_cache', clean); } catch(e) {}
     } catch (err) {
       console.error('Failed to load models.json', err);
-      els.catalogGrid.innerHTML = `
-        <div class="catalog-error">
-          <h3>Ошибка загрузки</h3>
-          <p>Не удалось загрузить каталог. Откройте страницу через локальный сервер, не file://</p>
-        </div>
-      `;
-      return;
+      // Try offline cache
+      try {
+        const cached = localStorage.getItem('models_cache');
+        if (cached) {
+          data = JSON.parse(cached);
+          showOfflineBanner();
+        } else {
+          els.catalogGrid.innerHTML = `
+            <div class="catalog-error">
+              <h3>Ошибка загрузки</h3>
+              <p>Не удалось загрузить каталог. Откройте страницу через локальный сервер, не file://</p>
+            </div>`;
+          return;
+        }
+      } catch(e) {
+        els.catalogGrid.innerHTML = `
+          <div class="catalog-error">
+            <h3>Ошибка загрузки</h3>
+            <p>Не удалось загрузить каталог. Откройте страницу через локальный сервер, не file://</p>
+          </div>`;
+        return;
+      }
     }
 
     // mark featured for the home page only if it has a featured grid
