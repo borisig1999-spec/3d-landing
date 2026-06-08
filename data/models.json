@@ -1227,6 +1227,19 @@
       "url": "https://makerworld.com/ru/models/2756769-ladder-organizer-rack#profileId-3059684",
       "tags": [],
       "featured": false
+    },
+    {
+      "id": "derzhatel-dlya-butylok-v-holodilnike",
+      "name": "Держатель для бутылок в холодильнике",
+      "category": "kitchen",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": 1,
+      "image": "images/derzhatel-dlya-butylok-v-holodilnike.webp",
+      "url": "https://makerworld.com/ru/models/2795821-fridge-bottle-holder",
+      "tags": [],
+      "featured": false
     }
   ]
 }
