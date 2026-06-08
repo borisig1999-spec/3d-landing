@@ -337,9 +337,14 @@ def handle_message(vk, event):
         handle_edit_value(vk, event, text, state)
         return
 
-    # Если ожидаем название новой категории
+    # Если ожидаем название новой категории (в режиме добавления)
     if state.get("awaiting_new_cat"):
         handle_new_category(vk, event, text, state)
+        return
+
+    # Если ожидаем название новой категории (в режиме редактирования)
+    if state.get("awaiting_new_cat_in_edit"):
+        handle_new_category_in_edit(vk, event, text, state)
         return
 
     # Если ожидаем название новой подкатегории
@@ -633,6 +638,61 @@ def handle_new_category(vk, event, text, state):
     )
 
 
+def handle_new_category_in_edit(vk, event, text, state):
+    """Создание новой категории в режиме редактирования."""
+    peer_id = event.obj.message["peer_id"]
+    model_id = state.get("edit_model_id")
+    cat_name = text.strip()
+    cat_id = re.sub(r'[^a-zа-я0-9]', '-', cat_name.lower()).strip('-')
+    cat_id = re.sub(r'-+', '-', cat_id)
+
+    if not cat_id:
+        vk.messages.send(
+            peer_id=peer_id,
+            message="Некорректное название. Попробуй ещё раз.",
+            random_id=event.obj.message["random_id"],
+        )
+        return
+
+    try:
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        for c in data.get("categories", []):
+            if c["id"] == cat_id:
+                vk.messages.send(
+                    peer_id=peer_id,
+                    message="Такая категория уже существует.",
+                    random_id=event.obj.message["random_id"],
+                )
+                return
+        data["categories"].append({"id": cat_id, "name": cat_name})
+
+        for m in data.get("models", []):
+            if m.get("id") == model_id:
+                m["category"] = cat_id
+                break
+
+        with open(DATA_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        vk.messages.send(
+            peer_id=peer_id,
+            message=f"Ошибка: {e}",
+            random_id=event.obj.message["random_id"],
+        )
+        return
+
+    git_commit_and_push(f"Добавлена категория и обновлена модель {model_id}: {cat_name}")
+
+    state.clear()
+    vk.messages.send(
+        peer_id=peer_id,
+        message=f"✅ Категория «{cat_name}» создана и модель обновлена!\n\nЧто делаем дальше?",
+        keyboard=get_main_menu_keyboard(),
+        random_id=event.obj.message["random_id"],
+    )
+
+
 def handle_new_subcategory(vk, event, text, state):
     """Обработка создания новой подкатегории."""
     sub_name = text.strip()
@@ -886,7 +946,7 @@ def handle_edit_field(vk, event, text, state):
         "weight": ("вес", "Введи новый вес в граммах (или «отмена»):"),
         "time": ("printTime", "Введи новое время печати в минутах (или «отмена»):"),
         "name": ("name", "Введи новое название (или «отмена»):"),
-        "category": ("category", "Введи новую категорию (или «отмена»):"),
+        "category": ("category", "Выбери новую категорию:"),
     }
 
     if field not in field_map:
@@ -902,11 +962,22 @@ def handle_edit_field(vk, event, text, state):
     state["awaiting_edit_value"] = True
     state["edit_field"] = field_map[field][0]
 
-    vk.messages.send(
-        peer_id=peer_id,
-        message=field_map[field][1],
-        random_id=event.obj.message["random_id"],
-    )
+    if field == "category":
+        vk.messages.send(
+            peer_id=peer_id,
+            message=field_map[field][1],
+            keyboard=get_category_keyboard(),
+            random_id=event.obj.message["random_id"],
+        )
+    else:
+        keyboard = VkKeyboard(one_time=True)
+        keyboard.add_callback_button("Отмена", color=VkKeyboardColor.NEGATIVE, payload={"type": "text", "text": "отмена"})
+        vk.messages.send(
+            peer_id=peer_id,
+            message=field_map[field][1],
+            keyboard=keyboard.get_keyboard(),
+            random_id=event.obj.message["random_id"],
+        )
 
 
 def handle_edit_value(vk, event, text, state):
@@ -948,12 +1019,25 @@ def handle_edit_value(vk, event, text, state):
                 elif field == "name":
                     m["name"] = text.strip()
                 elif field == "category":
-                    new_cat = text.strip().lower()
+                    if text.startswith("cat:"):
+                        new_cat = text.split(":")[1]
+                    else:
+                        new_cat = text.strip().lower()
+                    if new_cat == "new":
+                        state["awaiting_edit_value"] = False
+                        state["awaiting_new_cat_in_edit"] = True
+                        vk.messages.send(
+                            peer_id=peer_id,
+                            message="Отправь название новой категории на русском.\nНапример: «Одежда» или «Автозапчасти»",
+                            random_id=event.obj.message["random_id"],
+                        )
+                        return
                     categories = {c["id"]: c["name"] for c in data.get("categories", [])}
                     if new_cat not in categories:
                         vk.messages.send(
                             peer_id=peer_id,
-                            message=f"Категории «{new_cat}» нет в каталоге. Доступные: {', '.join(categories.values())}\n\nВведи заново или «отмена»:",
+                            message=f"Категории «{new_cat}» нет в каталоге.\n\nВыбери из списка или создай новую:",
+                            keyboard=get_category_keyboard(),
                             random_id=event.obj.message["random_id"],
                         )
                         return
