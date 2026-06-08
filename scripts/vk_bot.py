@@ -134,6 +134,13 @@ def git_commit_and_push(message: str) -> dict:
 
 
 # ---------- Клавиатуры ----------
+def get_main_menu_keyboard():
+    """Главное меню."""
+    keyboard = VkKeyboard(one_time=True)
+    keyboard.add_callback_button("Добавить модель", color=VkKeyboardColor.PRIMARY, payload={"type": "text", "text": "menu:add"})
+    keyboard.add_line()
+    keyboard.add_callback_button("Редактировать модель", color=VkKeyboardColor.SECONDARY, payload={"type": "text", "text": "menu:edit"})
+    return keyboard.get_keyboard()
 def create_keyboard(buttons, one_time=True):
     """Создаёт клавиатуру."""
     keyboard = VkKeyboard(one_time=one_time)
@@ -228,14 +235,8 @@ def handle_start(vk, event):
     """Приветствие."""
     vk.messages.send(
         peer_id=event.obj.message["peer_id"],
-        message=(
-            "Привет! Я бот для добавления 3D-моделей на сайт.\n\n"
-            "Просто отправь ссылку с MakerWorld, Thingiverse или Printables — "
-            "я скачаю фото, обновлю каталог и запушу на сайт.\n\n"
-            "Команды:\n"
-            "/help — подробная справка\n"
-            "/list — последние добавленные модели"
-        ),
+        message="Привет! Что делаем?",
+        keyboard=get_main_menu_keyboard(),
         random_id=event.obj.message["random_id"],
     )
 
@@ -310,6 +311,41 @@ def handle_message(vk, event):
         handle_list(vk, event)
         return
 
+    # Меню
+    if text == "menu:add":
+        state["flow"] = "add"
+        state.clear()
+        vk.messages.send(
+            peer_id=event.obj.message["peer_id"],
+            message="Отправь ссылку на модель с MakerWorld, Thingiverse или Printables:",
+            random_id=event.obj.message["random_id"],
+        )
+        return
+    elif text == "menu:edit":
+        state["flow"] = "edit"
+        state["awaiting_edit_url"] = True
+        vk.messages.send(
+            peer_id=event.obj.message["peer_id"],
+            message="Отправь ссылку на модель, которую нужно отредактировать:",
+            random_id=event.obj.message["random_id"],
+        )
+        return
+
+    # Редактирование: ожидаем URL
+    if state.get("awaiting_edit_url"):
+        handle_edit_url(vk, event, text, state)
+        return
+
+    # Редактирование: выбор поля
+    if state.get("awaiting_edit_field"):
+        handle_edit_field(vk, event, text, state)
+        return
+
+    # Редактирование: ввод нового значения
+    if state.get("awaiting_edit_value"):
+        handle_edit_value(vk, event, text, state)
+        return
+
     # Если ожидаем название новой категории
     if state.get("awaiting_new_cat"):
         handle_new_category(vk, event, text, state)
@@ -351,8 +387,8 @@ def handle_message(vk, event):
             )
         return
 
-    # Если это ссылка на модель
-    if is_model_url(text):
+    # Если это ссылка на модель (только в режиме добавления)
+    if is_model_url(text) and state.get("flow") != "edit":
         state["url"] = text
         state["awaiting_category"] = True
 
@@ -772,6 +808,181 @@ def add_model(vk, event, state, final_name):
         clear_user_state(user_id)
 
     # clear_user_state вызывается только при ошибке пуша (строка 765)
+
+
+
+def find_model_by_url(url):
+    """Ищет модель по URL или части URL в каталоге."""
+    try:
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        url_lower = url.lower().strip()
+        for m in data.get("models", []):
+            m_url = (m.get("url") or "").lower()
+            m_id = (m.get("id") or "").lower()
+            if url_lower in m_url or url_lower == m_id or m_url.endswith(url_lower):
+                return m
+        return None
+    except Exception:
+        return None
+
+
+def get_edit_keyboard():
+    """Клавиатура выбора поля для редактирования."""
+    keyboard = VkKeyboard(one_time=True)
+    keyboard.add_callback_button("Вес", color=VkKeyboardColor.PRIMARY, payload={"type": "text", "text": "edit:weight"})
+    keyboard.add_callback_button("Время печати", color=VkKeyboardColor.PRIMARY, payload={"type": "text", "text": "edit:time"})
+    keyboard.add_line()
+    keyboard.add_callback_button("Название", color=VkKeyboardColor.PRIMARY, payload={"type": "text", "text": "edit:name"})
+    keyboard.add_callback_button("Категория", color=VkKeyboardColor.PRIMARY, payload={"type": "text", "text": "edit:category"})
+    keyboard.add_line()
+    keyboard.add_callback_button("Назад в меню", color=VkKeyboardColor.SECONDARY, payload={"type": "text", "text": "/start"})
+    return keyboard.get_keyboard()
+
+
+def handle_edit_url(vk, event, text, state):
+    """Поиск модели по URL для редактирования."""
+    peer_id = event.obj.message["peer_id"]
+
+    if text.lower() in ("/start", "назад", "меню"):
+        state.clear()
+        vk.messages.send(
+            peer_id=peer_id,
+            message="Что делаем?",
+            keyboard=get_main_menu_keyboard(),
+            random_id=event.obj.message["random_id"],
+        )
+        return
+
+    model = find_model_by_url(text)
+    if not model:
+        vk.messages.send(
+            peer_id=peer_id,
+            message="Модель не найдена. Отправь точную ссылку или ID модели:",
+            random_id=event.obj.message["random_id"],
+        )
+        return
+
+    state["awaiting_edit_url"] = False
+    state["awaiting_edit_field"] = True
+    state["edit_model_id"] = model["id"]
+
+    info = f"Нашёл: {model['name']}\n"
+    info += f"Категория: {model.get('category', '?')}\n"
+    if model.get("weight"):
+        info += f"Вес: {model['weight']} г\n"
+    if model.get("printTime"):
+        pt = model["printTime"]
+        if pt > 60:
+            info += f"Время: {round(pt/60, 1)} ч\n"
+        else:
+            info += f"Время: {pt} мин\n"
+
+    vk.messages.send(
+        peer_id=peer_id,
+        message=f"{info}\nЧто отредактировать?",
+        keyboard=get_edit_keyboard(),
+        random_id=event.obj.message["random_id"],
+    )
+
+
+def handle_edit_field(vk, event, text, state):
+    """Обработка выбора поля для редактирования."""
+    peer_id = event.obj.message["peer_id"]
+
+    if text.startswith("edit:"):
+        field = text.split(":")[1]
+    else:
+        field = text.lower()
+
+    field_map = {
+        "weight": ("вес", "Введи новый вес в граммах (или «отмена»):"),
+        "time": ("printTime", "Введи новое время печати в минутах (или «отмена»):"),
+        "name": ("name", "Введи новое название (или «отмена»):"),
+        "category": ("category", "Введи новую категорию (или «отмена»):"),
+    }
+
+    if field not in field_map:
+        vk.messages.send(
+            peer_id=peer_id,
+            message="Не понял. Выбери кнопку:",
+            keyboard=get_edit_keyboard(),
+            random_id=event.obj.message["random_id"],
+        )
+        return
+
+    state["awaiting_edit_field"] = False
+    state["awaiting_edit_value"] = True
+    state["edit_field"] = field_map[field][0]
+
+    vk.messages.send(
+        peer_id=peer_id,
+        message=field_map[field][1],
+        random_id=event.obj.message["random_id"],
+    )
+
+
+def handle_edit_value(vk, event, text, state):
+    """Сохранение нового значения."""
+    peer_id = event.obj.message["peer_id"]
+    model_id = state.get("edit_model_id")
+    field = state.get("edit_field")
+
+    if text.lower() in ("отмена", "меню", "/start"):
+        state.clear()
+        vk.messages.send(
+            peer_id=peer_id,
+            message="Отменено. Что делаем?",
+            keyboard=get_main_menu_keyboard(),
+            random_id=event.obj.message["random_id"],
+        )
+        return
+
+    if not model_id or not field:
+        state.clear()
+        vk.messages.send(
+            peer_id=peer_id,
+            message="Ошибка состояния. Начни заново:",
+            keyboard=get_main_menu_keyboard(),
+            random_id=event.obj.message["random_id"],
+        )
+        return
+
+    try:
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        for m in data.get("models", []):
+            if m.get("id") == model_id:
+                if field == "weight":
+                    m["weight"] = float(text.replace(",", "."))
+                elif field == "printTime":
+                    m["printTime"] = float(text.replace(",", "."))
+                elif field == "name":
+                    m["name"] = text.strip()
+                elif field == "category":
+                    m["category"] = text.strip().lower()
+                break
+
+        with open(DATA_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+
+        git_commit_and_push(f"Обновлена модель {model_id}: {field}")
+
+        vk.messages.send(
+            peer_id=peer_id,
+            message=f"✅ Готово! Модель {model_id} обновлена.\n\nЧто делаем дальше?",
+            keyboard=get_main_menu_keyboard(),
+            random_id=event.obj.message["random_id"],
+        )
+    except Exception as e:
+        vk.messages.send(
+            peer_id=peer_id,
+            message=f"Ошибка: {e}",
+            random_id=event.obj.message["random_id"],
+        )
+
+    state.clear()
 
 
 def update_model_data(model_id, weight=None, print_time=None):
