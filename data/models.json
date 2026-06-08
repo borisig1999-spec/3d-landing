@@ -1136,6 +1136,19 @@
       "url": "https://makerworld.com/ru/models/32077-toothbrush-travel-case#profileId-2377511",
       "tags": [],
       "featured": false
+    },
+    {
+      "id": "fitingi-dlya-shlangov",
+      "name": "Фитинги для шлангов",
+      "category": "tools",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/fitingi-dlya-shlangov.webp",
+      "url": "https://makerworld.com/ru/models/2687519-hydraulic-fittings-1-2-m-pipes-o-internal-4-24-mm#profileId-2977271",
+      "tags": [],
+      "featured": false
     }
   ]
 }
