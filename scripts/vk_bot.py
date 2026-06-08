@@ -327,12 +327,28 @@ def handle_message(vk, event):
 
     # Если ожидаем ввод веса
     if state.get("awaiting_weight"):
-        handle_weight_input(vk, event, text, state)
+        try:
+            handle_weight_input(vk, event, text, state)
+        except Exception as e:
+            logger.error(f"Error in weight input: {e}")
+            vk.messages.send(
+                peer_id=event.obj.message["peer_id"],
+                message=f"Ошибка: {e}\n\nПопробуй ещё раз или напиши «пропустить»:",
+                random_id=event.obj.message["random_id"],
+            )
         return
 
     # Если ожидаем ввод времени
     if state.get("awaiting_time"):
-        handle_time_input(vk, event, text, state)
+        try:
+            handle_time_input(vk, event, text, state)
+        except Exception as e:
+            logger.error(f"Error in time input: {e}")
+            vk.messages.send(
+                peer_id=event.obj.message["peer_id"],
+                message=f"Ошибка: {e}\n\nПопробуй ещё раз или напиши «пропустить»:",
+                random_id=event.obj.message["random_id"],
+            )
         return
 
     # Если это ссылка на модель
@@ -748,7 +764,7 @@ def add_model(vk, event, state, final_name):
         )
         clear_user_state(user_id)
 
-    clear_user_state(user_id)
+    # clear_user_state вызывается только при ошибке пуша (строка 765)
 
 
 def update_model_data(model_id, weight=None, print_time=None):
@@ -875,6 +891,10 @@ def main():
                 processed_messages.clear()
             handle_message(vk, event)
         elif event.type == VkBotEventType.MESSAGE_EVENT:
+            event_id = event.obj.event_id
+            if event_id in processed_messages:
+                continue
+            processed_messages.add(event_id)
             try:
                 vk.messages.sendMessageEventAnswer(
                     event_id=event.obj.event_id,
