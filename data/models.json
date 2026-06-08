@@ -1318,6 +1318,19 @@
       "url": "https://makerworld.com/ru/models/2558189-car-visor-sunglasses-holder",
       "tags": [],
       "featured": false
+    },
+    {
+      "id": "igra-balansirovka-lesnyh-zhivotnyh-profileid",
+      "name": "Игра «Балансировка лесных животных» # Profileid 3151752",
+      "category": "games",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": 1,
+      "image": "images/igra-balansirovka-lesnyh-zhivotnyh-profileid.webp",
+      "url": "https://makerworld.com/ru/models/2828950-forest-animal-balancing-stacking-game#profileId-3151752",
+      "tags": [],
+      "featured": false
     }
   ]
 }
