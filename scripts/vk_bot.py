@@ -142,18 +142,6 @@ def get_main_menu_keyboard():
     keyboard.add_line()
     keyboard.add_callback_button("Редактировать модель", color=VkKeyboardColor.SECONDARY, payload={"type": "text", "text": "menu:edit"})
     return keyboard.get_keyboard()
-def create_keyboard(buttons, one_time=True):
-    """Создаёт клавиатуру."""
-    keyboard = VkKeyboard(one_time=one_time)
-    for i, (text, color, callback) in enumerate(buttons):
-        if i > 0 and i % 2 == 0:
-            keyboard.add_line()
-        keyboard.add_callback_button(
-            text,
-            color=color,
-            payload={"type": "text", "text": callback}
-        )
-    return keyboard.get_keyboard()
 
 
 def get_category_keyboard(highlight_cat=None):
@@ -315,8 +303,8 @@ def handle_message(vk, event):
 
     # Меню
     if text == "menu:add":
-        state["flow"] = "add"
         state.clear()
+        state["flow"] = "add"
         vk.messages.send(
             peer_id=event.obj.message["peer_id"],
             message="Отправь ссылку на модель с MakerWorld, Thingiverse или Printables:",
@@ -324,6 +312,7 @@ def handle_message(vk, event):
         )
         return
     elif text == "menu:edit":
+        state.clear()
         state["flow"] = "edit"
         state["awaiting_edit_url"] = True
         vk.messages.send(
@@ -458,7 +447,6 @@ def guess_category_from_url(url: str) -> str:
 
 def handle_category_selection(vk, event, text, state):
     """Обработка выбора категории."""
-    user_id = event.obj.message["from_id"]
     categories = load_categories()
 
     # Обработка callback кнопок
@@ -500,7 +488,6 @@ def handle_category_selection(vk, event, text, state):
 
 def handle_subcategory_selection(vk, event, text, state):
     """Обработка выбора подкатегории."""
-    user_id = event.obj.message["from_id"]
 
     if text.startswith("sub:"):
         sub_id = text.split(":")[1]
@@ -570,7 +557,6 @@ def handle_subcategory_selection(vk, event, text, state):
 
 def handle_name_selection(vk, event, text, state):
     """Обработка выбора названия."""
-    user_id = event.obj.message["from_id"]
 
     if text.startswith("name:"):
         choice = text.split(":")[1]
@@ -597,7 +583,6 @@ def handle_name_selection(vk, event, text, state):
 
 def handle_new_category(vk, event, text, state):
     """Обработка создания новой категории."""
-    user_id = event.obj.message["from_id"]
     cat_name = text.strip()
     cat_id = re.sub(r'[^a-zа-я0-9]', '-', cat_name.lower()).strip('-')
     cat_id = re.sub(r'-+', '-', cat_id)
@@ -650,7 +635,6 @@ def handle_new_category(vk, event, text, state):
 
 def handle_new_subcategory(vk, event, text, state):
     """Обработка создания новой подкатегории."""
-    user_id = event.obj.message["from_id"]
     sub_name = text.strip()
     sub_id = re.sub(r'[^a-zа-я0-9]', '-', sub_name.lower()).strip('-')
     sub_id = re.sub(r'-+', '-', sub_id)
@@ -811,8 +795,6 @@ def add_model(vk, event, state, final_name):
         )
         clear_user_state(user_id)
 
-    # clear_user_state вызывается только при ошибке пуша (строка 765)
-
 
 
 def find_model_by_url(url):
@@ -862,7 +844,8 @@ def handle_edit_url(vk, event, text, state):
     if not model:
         vk.messages.send(
             peer_id=peer_id,
-            message="Модель не найдена. Отправь точную ссылку или ID модели:",
+            message="Модель не найдена. Отправь точную ссылку или ID модели, или «назад» для возврата в меню:",
+            keyboard=get_main_menu_keyboard(),
             random_id=event.obj.message["random_id"],
         )
         return
@@ -965,7 +948,16 @@ def handle_edit_value(vk, event, text, state):
                 elif field == "name":
                     m["name"] = text.strip()
                 elif field == "category":
-                    m["category"] = text.strip().lower()
+                    new_cat = text.strip().lower()
+                    categories = {c["id"]: c["name"] for c in data.get("categories", [])}
+                    if new_cat not in categories:
+                        vk.messages.send(
+                            peer_id=peer_id,
+                            message=f"Категории «{new_cat}» нет в каталоге. Доступные: {', '.join(categories.values())}\n\nВведи заново или «отмена»:",
+                            random_id=event.obj.message["random_id"],
+                        )
+                        return
+                    m["category"] = new_cat
                 break
 
         with open(DATA_FILE, "w", encoding="utf-8") as f:
@@ -979,6 +971,13 @@ def handle_edit_value(vk, event, text, state):
             keyboard=get_main_menu_keyboard(),
             random_id=event.obj.message["random_id"],
         )
+    except ValueError:
+        vk.messages.send(
+            peer_id=peer_id,
+            message="Неверное число. Введи заново или «отмена»:",
+            random_id=event.obj.message["random_id"],
+        )
+        return
     except Exception as e:
         vk.messages.send(
             peer_id=peer_id,
@@ -1097,16 +1096,16 @@ def handle_time_input(vk, event, text, state):
     weight = state.get("weight")
     model_id = state.get("last_model_id")
 
-    if model_id and (weight or print_time):
+    if model_id and (weight is not None or print_time is not None):
         ok = update_model_data(model_id, weight=weight, print_time=print_time)
         if ok:
             git_commit_and_push(f"Обновлены данные модели: {model_id}")
 
     # Финальное сообщение
     info = []
-    if weight:
+    if weight is not None:
         info.append(f"Вес: {weight} г")
-    if print_time:
+    if print_time is not None:
         if print_time > 60:
             info.append(f"Время печати: {round(print_time/60, 1)} ч")
         else:
