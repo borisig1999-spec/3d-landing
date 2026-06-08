@@ -11,6 +11,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -211,6 +212,7 @@ def get_name_keyboard(original_name, translated_name):
 
 # ---------- Дедупликация ----------
 processed_messages = set()
+callback_seen = {}  # {(user_id, text): timestamp} — чтобы не дублировать MESSAGE_NEW после callback
 
 # ---------- Состояния пользователей ----------
 ALLOWED_USERS = {362356023}
@@ -1142,6 +1144,15 @@ def main():
             processed_messages.add(msg_id)
             if len(processed_messages) > 1000:
                 processed_messages.clear()
+            # Пропускаем MESSAGE_NEW если уже обработали как callback
+            cb_key = (event.obj.message.get("from_id"), event.obj.message.get("text", "").strip())
+            if cb_key in callback_seen:
+                del callback_seen[cb_key]
+                continue
+            # Очистка старых callback-записей (>10 сек)
+            now = time.time()
+            for k in [k for k, t in callback_seen.items() if now - t > 10]:
+                del callback_seen[k]
             handle_message(vk, event)
         elif event.type == VkBotEventType.MESSAGE_EVENT:
             event_id = event.obj.event_id
@@ -1163,6 +1174,9 @@ def main():
             else:
                 text = ""
             if text:
+                # Помечаем что callback обработан — чтобы пропустить дубль MESSAGE_NEW
+                callback_seen[(event.obj.user_id, text)] = time.time()
+
                 class DictObj:
                     def __init__(self, d):
                         self._d = d
