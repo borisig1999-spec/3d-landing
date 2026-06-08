@@ -1149,6 +1149,19 @@
       "url": "https://makerworld.com/ru/models/2687519-hydraulic-fittings-1-2-m-pipes-o-internal-4-24-mm#profileId-2977271",
       "tags": [],
       "featured": false
+    },
+    {
+      "id": "gidrosistema-s-podsvetkoy",
+      "name": "Гидросистема с подсветкой",
+      "category": "home",
+      "subcategory": null,
+      "material": "PLA",
+      "weight": null,
+      "printTime": null,
+      "image": "images/gidrosistema-s-podsvetkoy.webp",
+      "url": "https://makerworld.com/ru/models/2421936-led-kit-001-hydrosquare-rain-planter#profileId-2675183",
+      "tags": [],
+      "featured": false
     }
   ]
 }
