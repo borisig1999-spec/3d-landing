@@ -52,7 +52,8 @@
     const mat = model.material || 'PLA';
     const price = prices[mat] || 5;
     if (model.weight == null) return null;
-    return Math.round(model.weight * price);
+    const effectivePrice = model.weight < 10 ? 10 : price;
+    return Math.round(model.weight * effectivePrice);
   }
 
   function formatSpec(model) {
